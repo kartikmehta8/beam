@@ -12,7 +12,7 @@ import { claimHandle } from '../handles';
 import { useAccountCall, useHandleAvailability, type HandleCheck } from '../hooks';
 import type { BeamPayAccount } from '../beamPayClient';
 import { ApiError, worldOf, type ServerStatus } from '../serverApi';
-import { colors, HIT, radius, space, type as typeScale } from '../theme';
+import { colors, radius, space, type as typeScale } from '../theme';
 import { WORLD_OFF } from '../validateIntent';
 import { ApprovalSheet } from './ApprovalSheet';
 import { EnsMark, WorldMark } from './logos';
@@ -72,9 +72,9 @@ export function WorldIdRow({ address, account, accountError, server, onLinked, d
 
   let subtitle: string;
   if (world === 'off') subtitle = WORLD_OFF;
-  else if (account?.linked) subtitle = 'World ID linked. Payments over your cap need a fresh check.';
+  else if (account?.linked) subtitle = 'World ID linked. Only payments over your cap need a fresh check.';
   else if (call.sending) subtitle = 'Linking…';
-  else if (account) subtitle = 'Prove a real human approves risky payments.';
+  else if (account) subtitle = 'Verify you are a real human, once. Needed for payments over your cap.';
   else if (accountError) subtitle = "Couldn't check World ID. Pull to refresh.";
   else subtitle = server.kind === 'unreachable' ? UNREACHABLE : 'Checking…';
 
@@ -103,7 +103,7 @@ export function WorldIdRow({ address, account, accountError, server, onLinked, d
         visible={approving}
         request={address ? { kind: 'link', wallet: address } : null}
         title="Link World ID"
-        detail="Link this wallet to you as a unique human, once. Payments over your cap, to new people or from outside agents will then need your fresh approval."
+        detail="Link this wallet to you as a unique human, once. After that, only payments over your cap need a fresh World ID check. Everything else is just your fingerprint."
         onApproved={({ result }) => {
           if (result.alreadyLinked) return onLinked();
           if (!result.humanHash || !result.signature || result.deadline === undefined) return;
@@ -325,18 +325,21 @@ export function HandleRow({ address, handle, handleError, account, server, onCla
 
   if (handle) {
     return (
-      <ListRow
-        leading={mark}
-        title={handle}
-        subtitle={copied ? 'Copied' : 'Your Beam handle on ENS'}
-        accessibilityLabel={`Your handle ${handle}`}
-        trailing={
-          <View style={styles.iconActions}>
-            <IconAction icon={copied ? 'check' : 'copy'} label={copied ? 'Handle copied' : 'Copy handle'} onPress={() => void copy(handle)} />
-            <IconAction icon="share-2" label="Share handle" onPress={() => void Share.share({ message: handle })} />
-          </View>
-        }
-      />
+      <View style={styles.handleRow} accessible accessibilityLabel={`Your handle ${handle}`}>
+        {mark}
+        <View style={styles.rowText}>
+          <Text variant="bodyStrong" numberOfLines={1} ellipsizeMode="middle">
+            {handle}
+          </Text>
+          <Text variant="caption" color={copied ? 'success' : 'textSecondary'} numberOfLines={1}>
+            {copied ? 'Copied' : 'Your Beam handle on ENS'}
+          </Text>
+        </View>
+        <View style={styles.iconActions}>
+          <IconAction icon={copied ? 'check' : 'copy'} label={copied ? 'Handle copied' : 'Copy handle'} onPress={() => void copy(handle)} />
+          <IconAction icon="share-2" label="Share handle" onPress={() => void Share.share({ message: handle })} />
+        </View>
+      </View>
     );
   }
 
@@ -401,8 +404,19 @@ function IconAction({ icon, label, onPress }: { icon: 'copy' | 'check' | 'share-
 const styles = StyleSheet.create({
   tile: { width: 40, height: 40, borderRadius: radius.md, alignItems: 'center', justifyContent: 'center', backgroundColor: colors.surfaceMuted },
   rowError: { paddingBottom: space.sm },
-  iconActions: { flexDirection: 'row' },
-  iconAction: { width: HIT, height: HIT, alignItems: 'center', justifyContent: 'center', borderRadius: radius.pill },
+  handleRow: { flexDirection: 'row', alignItems: 'center', gap: space.md, paddingVertical: space.sm },
+  rowText: { flex: 1, gap: space.xxs },
+  iconActions: { flexDirection: 'row', gap: space.sm },
+  iconAction: {
+    width: 40,
+    height: 40,
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderRadius: radius.md,
+    borderWidth: StyleSheet.hairlineWidth,
+    borderColor: colors.border,
+    backgroundColor: colors.surface,
+  },
   pressed: { backgroundColor: colors.surfaceMuted },
   field: {
     ...typeScale.body,

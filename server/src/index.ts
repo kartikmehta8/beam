@@ -24,6 +24,7 @@ import { loadServerConfig } from './config';
 import { loadHandlesConfig, type HandlesConfig } from './handles/config';
 import { createHandleRoutes } from './handles/routes';
 import { maskAddress, type Env } from './http';
+import { mountMcpHttp } from './mcpHttp';
 import { agentRequestSchema } from './schemas';
 
 export { maskAddress };
@@ -43,6 +44,8 @@ export type AppDeps = AgentDeps & {
   /** Whether handle claims can actually be made (handles configured). */
   handlesEnabled: boolean;
   ensChainId: number;
+  /** Daily limit (network token) the hosted MCP proposes under; the phone re-checks before signing. Default 100. */
+  mcpDailyLimit?: string;
   /** Folder for uploaded profile avatars; defaults to `uploads`. */
   uploadsDir?: string;
   /** Clock for the rate limiter; injectable for tests. */
@@ -155,6 +158,15 @@ export function createApp(deps: AppDeps): Hono<Env> {
   app.route('/v1/approvals', deps.approvals.routes);
   if (deps.handleRoutes) app.route('/v1/handles', deps.handleRoutes);
   app.route('/profile', createProfileRoutes({ agentToken: deps.agentToken, uploadsDir: deps.uploadsDir ?? 'uploads' }));
+
+  // Hosted MCP over HTTP (outside /v1 auth): `claude mcp add --transport http beam <url>/mcp/<wallet>`.
+  mountMcpHttp(app, {
+    chain: deps.chain,
+    ens: deps.ens,
+    network: deps.network,
+    beamPay: deps.beamPay,
+    dailyLimit: deps.mcpDailyLimit ?? '100',
+  });
 
   app.onError((err, c) => {
     c.set('log', { errors: [err.name] });

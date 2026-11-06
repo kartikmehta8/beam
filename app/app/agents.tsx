@@ -1,30 +1,28 @@
 /**
- * @file Agents screen: connect an AI agent to Beam over MCP, the tools it gets,
- * and the one rule — every agent payment needs this human's World ID approval.
+ * @file Agents screen: connect an AI agent to Beam over hosted MCP (streamable
+ * HTTP), the tools it gets, and the one rule: every agent payment needs this
+ * human's World ID approval.
  *
- * Beam's MCP is a local stdio server (`server`, name "beam"), so connecting is an
- * MCP config entry, not a URL or API key. World ID state is the same onchain
- * signal Security uses (`BeamPayAccount.linked`).
+ * Connecting is one command with a URL (`<server>/mcp/<wallet>`); no stdio, no
+ * API key. World ID state is the same onchain signal Security uses.
  */
 import { router } from 'expo-router';
+import { useState } from 'react';
 import { Pressable, StyleSheet, View } from 'react-native';
+import { AgentAvatar } from '../src/components/AgentAvatar';
 import { Icon } from '../src/components/Icon';
 import { Screen } from '../src/components/Screen';
 import { useCopy } from '../src/components/useCopy';
 import { Card, ListRow, SectionHeader, Text, type IconName } from '../src/components/ui';
+import { config } from '../src/config';
 import { useBeamPayAccount, useWallet } from '../src/hooks';
 import { colors, radius, space } from '../src/theme';
 
-/** Paste into an agent's MCP config (Claude Desktop, Cursor, Codex...). Beam's MCP is local stdio. */
-const MCP_CONFIG = `{
-  "mcpServers": {
-    "beam": {
-      "command": "npm",
-      "args": ["run", "mcp"],
-      "cwd": "server"
-    }
-  }
-}`;
+/** How each agent adds a streamable-HTTP MCP server, given the Beam MCP URL. */
+const AGENTS: { id: string; label: string; command: (url: string) => string }[] = [
+  { id: 'claude', label: 'Claude Code', command: (url) => `claude mcp add --transport http beam ${url}` },
+  { id: 'codex', label: 'Codex', command: (url) => `codex mcp add beam --url ${url}` },
+];
 
 /** The tools Beam exposes to a connected agent. */
 const TOOLS: { icon: IconName; title: string; subtitle: string }[] = [
@@ -43,6 +41,11 @@ export default function AgentsScreen() {
   const account = useBeamPayAccount(address);
   const linked = account.value?.linked ?? false;
   const { copied, copy } = useCopy();
+  const [agentId, setAgentId] = useState(AGENTS[0].id);
+  const agent = AGENTS.find((a) => a.id === agentId) ?? AGENTS[0];
+
+  const url = address ? `${config.agentUrl}/mcp/${address}` : null;
+  const command = url ? agent.command(url) : 'Creating your wallet…';
 
   const header = (
     <View style={styles.header}>
@@ -62,34 +65,59 @@ export default function AgentsScreen() {
 
   return (
     <Screen header={header}>
-      <Text variant="callout" color="textSecondary" style={styles.lede}>
-        Connect an AI agent to Beam. It can propose payments; you approve each one with World ID, and USDC settles on Arc.
-      </Text>
-
-      <View style={styles.section}>
-        <SectionHeader title="Works with" />
-        <Card>
-          <ListRow icon="cpu" tone="neutral" title="Any MCP client" subtitle="Claude, Claude Code, Cursor, Codex — anything that speaks MCP." />
-        </Card>
-      </View>
-
       <View style={styles.section}>
         <SectionHeader title="Connect" />
         <Card style={styles.connect}>
-          <Text variant="caption" color="textSecondary">
-            Add this to your agent’s MCP config. Beam’s MCP runs locally over stdio, so there is no URL or API key.
-          </Text>
+          <View style={styles.tabs}>
+            {AGENTS.map((a) => {
+              const on = a.id === agentId;
+              return (
+                <Pressable
+                  key={a.id}
+                  accessibilityRole="button"
+                  accessibilityState={{ selected: on }}
+                  accessibilityLabel={a.label}
+                  onPress={() => setAgentId(a.id)}
+                  style={({ pressed }) => [styles.tab, on && styles.tabOn, pressed && styles.pressed]}
+                >
+                  <AgentAvatar name={a.label} size={24} />
+                  <Text variant="bodyStrong" color={on ? 'text' : 'textSecondary'} style={styles.flex} numberOfLines={1}>
+                    {a.label}
+                  </Text>
+                  {on ? <Icon name="check-circle" size={18} color={colors.primary} /> : null}
+                </Pressable>
+              );
+            })}
+          </View>
+
           <Pressable
             accessibilityRole="button"
-            accessibilityLabel={copied ? 'MCP config copied' : 'Copy MCP config'}
-            onPress={() => void copy(MCP_CONFIG)}
-            style={({ pressed }) => [styles.code, pressed && styles.pressed]}
+            accessibilityLabel={copied ? 'Command copied' : `Copy ${agent.label} command`}
+            disabled={!url}
+            onPress={() => url && void copy(command)}
+            style={({ pressed }) => [styles.terminal, pressed && styles.pressed]}
           >
-            <Text variant="mono" style={styles.codeText}>
-              {MCP_CONFIG}
-            </Text>
-            <Icon name={copied ? 'check' : 'copy'} size={16} color={copied ? colors.success : colors.textTertiary} />
+            <View style={styles.terminalBar}>
+              <View style={styles.dots}>
+                <View style={[styles.dot, { backgroundColor: colors.danger }]} />
+                <View style={[styles.dot, { backgroundColor: colors.warning }]} />
+                <View style={[styles.dot, { backgroundColor: colors.success }]} />
+              </View>
+              <Icon name={copied ? 'check' : 'copy'} size={14} color={copied ? colors.success : colors.textTertiary} />
+            </View>
+            <View style={styles.cmd}>
+              <Text variant="mono" color="textTertiary">
+                {'$ '}
+              </Text>
+              <Text variant="mono" style={styles.flex}>
+                {command}
+              </Text>
+            </View>
           </Pressable>
+
+          <Text variant="caption" color="textTertiary">
+            Hosted MCP over HTTP. No stdio, no API key.
+          </Text>
         </Card>
       </View>
 
@@ -109,9 +137,7 @@ export default function AgentsScreen() {
             icon="shield"
             tone={linked ? 'success' : 'neutral'}
             title={linked ? 'World ID linked' : 'Set up World ID'}
-            subtitle={
-              linked ? 'Every agent payment needs your approval here.' : 'Link once in Profile; then every agent payment needs your approval.'
-            }
+            subtitle={linked ? 'Every agent payment needs your approval.' : 'Link once in Profile to approve agent payments.'}
             onPress={linked ? undefined : () => router.navigate('/profile')}
             trailing={linked ? <Icon name="check-circle" size={20} color={colors.success} /> : undefined}
           />
@@ -132,17 +158,38 @@ const styles = StyleSheet.create({
   },
   back: { width: 40, height: 40, alignItems: 'flex-start', justifyContent: 'center' },
   pressed: { opacity: 0.6 },
-  lede: { marginTop: space.xs },
   section: { gap: space.xs },
-  connect: { gap: space.sm },
-  code: {
+  connect: { gap: space.md },
+  flex: { flex: 1 },
+  tabs: { gap: space.sm },
+  tab: {
     flexDirection: 'row',
-    alignItems: 'flex-start',
-    justifyContent: 'space-between',
-    gap: space.sm,
-    padding: space.md,
+    alignItems: 'center',
+    gap: space.md,
+    padding: space.sm,
     borderRadius: radius.md,
-    backgroundColor: colors.surfaceMuted,
+    borderWidth: StyleSheet.hairlineWidth,
+    borderColor: colors.border,
+    backgroundColor: colors.surface,
   },
-  codeText: { flex: 1 },
+  tabOn: { borderColor: colors.primary, backgroundColor: colors.primarySoft },
+  terminal: {
+    borderRadius: radius.md,
+    borderWidth: StyleSheet.hairlineWidth,
+    borderColor: colors.border,
+    backgroundColor: colors.surfaceMuted,
+    overflow: 'hidden',
+  },
+  terminalBar: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    paddingHorizontal: space.md,
+    paddingVertical: space.sm,
+    borderBottomWidth: StyleSheet.hairlineWidth,
+    borderBottomColor: colors.border,
+  },
+  dots: { flexDirection: 'row', gap: space.xs },
+  dot: { width: 10, height: 10, borderRadius: 5 },
+  cmd: { flexDirection: 'row', alignItems: 'flex-start', padding: space.md },
 });
