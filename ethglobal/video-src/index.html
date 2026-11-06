@@ -33,6 +33,14 @@
       }
       #root { width: 100%; height: 100%; position: relative; }
       #bg { position: absolute; inset: 0; background: var(--ground); z-index: 0; }
+      #captions { position: absolute; inset: 0; z-index: 50; }
+      .cap {
+        position: absolute; left: 50%; bottom: 120px; transform: translateX(-50%);
+        max-width: 1180px; text-align: center;
+        font-family: var(--font-display); font-size: 42px; font-weight: 600; letter-spacing: -0.012em; line-height: 1.25;
+        color: #fff; background: rgba(8, 9, 12, 0.60); border: 1px solid rgba(255, 255, 255, 0.08);
+        border-radius: 16px; padding: 16px 32px;
+      }
     </style>
   </head>
   <body>
@@ -60,9 +68,53 @@
       <div id="s5-end" data-composition-id="s5-end" data-composition-src="compositions/s5-end.html"
         data-track-kind="graphics" data-track-index="1"
         data-start="168" data-duration="18" data-width="1920" data-height="1080"></div>
+
+      <div id="captions" data-track-kind="captions">
+        <div class="cap clip" id="cap1" data-start="2.5" data-duration="3.9" data-track-index="10">This is Beam — an Android wallet that lives on your screen.</div>
+        <div class="cap clip" id="cap2" data-start="14.5" data-duration="3.1" data-track-index="10">You're in a chat, and the amount is already right there.</div>
+        <div class="cap clip" id="cap3" data-start="18.5" data-duration="4.3" data-track-index="10">Tap the floating Beam. It reads your screen — only when you ask.</div>
+        <div class="cap clip" id="cap4" data-start="26" data-duration="4.9" data-track-index="10">Pay a name, not a hex address. Beam re-resolves it on your phone.</div>
+        <div class="cap clip" id="cap5" data-start="36" data-duration="4" data-track-index="10">Confirm with your fingerprint — USDC settles on Arc.</div>
+        <div class="cap clip" id="cap6" data-start="59" data-duration="2.6" data-track-index="10">Your AI agents can pay, too.</div>
+        <div class="cap clip" id="cap7" data-start="62" data-duration="5.9" data-track-index="10">Connect Claude Code or Codex over MCP. One URL, no API key.</div>
+        <div class="cap clip" id="cap8" data-start="74.5" data-duration="2.9" data-track-index="10">They read your balance and propose a payment…</div>
+        <div class="cap clip" id="cap9" data-start="92" data-duration="3.6" data-track-index="10">…but when an agent asks, it opens on your phone.</div>
+        <div class="cap clip" id="cap10" data-start="100.5" data-duration="2.7" data-track-index="10">Only you approve, with World ID.</div>
+        <div class="cap clip" id="cap11" data-start="114" data-duration="2.7" data-track-index="10">Spending limits, enforced on-chain.</div>
+        <div class="cap clip" id="cap12" data-start="128" data-duration="3.1" data-track-index="10">Pay by name, or claim your own on ENS.</div>
+        <div class="cap clip" id="cap13" data-start="142" data-duration="3.2" data-track-index="10">A real human stays in the loop with World ID.</div>
+        <div class="cap clip" id="cap14" data-start="150.5" data-duration="3.6" data-track-index="10">And every payment settles in USDC, on Arc.</div>
+        <div class="cap clip" id="cap15" data-start="170" data-duration="3.4" data-track-index="10">Beam. Your screen. Your wallet. Your call.</div>
+      </div>
+
+      <audio id="music" class="clip" data-start="0" data-duration="186" data-track-index="30" data-volume="0.22" src="assets/music.mp3"></audio>
+      <audio id="vo1" class="clip" data-start="2.5" data-duration="3.7" data-track-index="20" data-volume="1" src="assets/vo/l01.mp3"></audio>
+      <audio id="vo2" class="clip" data-start="14.5" data-duration="3.0" data-track-index="20" data-volume="1" src="assets/vo/l02.mp3"></audio>
+      <audio id="vo3" class="clip" data-start="18.5" data-duration="4.15" data-track-index="20" data-volume="1" src="assets/vo/l03.mp3"></audio>
+      <audio id="vo4" class="clip" data-start="26" data-duration="4.7" data-track-index="20" data-volume="1" src="assets/vo/l04.mp3"></audio>
+      <audio id="vo5" class="clip" data-start="36" data-duration="3.85" data-track-index="20" data-volume="1" src="assets/vo/l05.mp3"></audio>
+      <audio id="vo6" class="clip" data-start="59" data-duration="2.25" data-track-index="20" data-volume="1" src="assets/vo/l06.mp3"></audio>
+      <audio id="vo7" class="clip" data-start="62" data-duration="5.75" data-track-index="20" data-volume="1" src="assets/vo/l07.mp3"></audio>
+      <audio id="vo8" class="clip" data-start="74.5" data-duration="2.75" data-track-index="20" data-volume="1" src="assets/vo/l08.mp3"></audio>
+      <audio id="vo9" class="clip" data-start="92" data-duration="3.4" data-track-index="20" data-volume="1" src="assets/vo/l09.mp3"></audio>
+      <audio id="vo10" class="clip" data-start="100.5" data-duration="2.5" data-track-index="20" data-volume="1" src="assets/vo/l10.mp3"></audio>
+      <audio id="vo11" class="clip" data-start="114" data-duration="2.45" data-track-index="20" data-volume="1" src="assets/vo/l11.mp3"></audio>
+      <audio id="vo12" class="clip" data-start="128" data-duration="2.85" data-track-index="20" data-volume="1" src="assets/vo/l12.mp3"></audio>
+      <audio id="vo13" class="clip" data-start="142" data-duration="2.95" data-track-index="20" data-volume="1" src="assets/vo/l13.mp3"></audio>
+      <audio id="vo14" class="clip" data-start="150.5" data-duration="3.4" data-track-index="20" data-volume="1" src="assets/vo/l14.mp3"></audio>
+      <audio id="vo15" class="clip" data-start="170" data-duration="2.9" data-track-index="20" data-volume="1" src="assets/vo/l15.mp3"></audio>
     </div>
     <script>
       const tl = gsap.timeline({ paused: true });
+      const caps = [
+        ["cap1",2.5,3.9],["cap2",14.5,3.1],["cap3",18.5,4.3],["cap4",26,4.9],["cap5",36,4],
+        ["cap6",59,2.6],["cap7",62,5.9],["cap8",74.5,2.9],["cap9",92,3.6],["cap10",100.5,2.7],
+        ["cap11",114,2.7],["cap12",128,3.1],["cap13",142,3.2],["cap14",150.5,3.6],["cap15",170,3.4]
+      ];
+      caps.forEach(([id, st, du]) => {
+        tl.fromTo("#" + id, { opacity: 0 }, { opacity: 1, duration: 0.3, ease: "power2.out" }, st);
+        tl.to("#" + id, { opacity: 0, duration: 0.3, ease: "power2.in" }, st + du - 0.3);
+      });
       window.__timelines["main"] = tl;
       tl.seek(0);
     </script>
