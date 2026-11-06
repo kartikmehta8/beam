@@ -53,15 +53,6 @@ const ROWS: RowSpec[] = [
     required: false,
     action: 'Allow',
   },
-  {
-    key: 'battery',
-    icon: 'battery-charging',
-    title: 'Battery optimization',
-    granted: 'Exempt, so the beam keeps running',
-    missing: 'Recommended so your phone doesn’t stop the beam',
-    required: false,
-    action: 'Fix',
-  },
 ];
 
 const OEM_TIP =

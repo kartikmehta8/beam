@@ -22,24 +22,28 @@ export function SuggestionChip({
   icon,
   mono,
   accessibilityLabel,
+  disabled,
   onPress,
 }: {
   label: string;
   icon?: IconName;
   mono?: boolean;
   accessibilityLabel?: string;
+  disabled?: boolean;
   onPress: () => void;
 }) {
   return (
     <Pressable
       accessibilityRole="button"
       accessibilityLabel={accessibilityLabel ?? label}
+      accessibilityState={{ disabled: !!disabled }}
+      disabled={disabled}
       hitSlop={{ top: 4, bottom: 4 }}
       onPress={() => {
         void Haptics.selectionAsync();
         onPress();
       }}
-      style={({ pressed }) => [styles.chip, icon && styles.withIcon, pressed && styles.pressed]}
+      style={({ pressed }) => [styles.chip, icon && styles.withIcon, pressed && styles.pressed, disabled && styles.disabled]}
     >
       {icon ? (
         <View style={styles.icon}>
@@ -69,6 +73,7 @@ const styles = StyleSheet.create({
   label: { flexShrink: 1 },
   withIcon: { paddingLeft: space.xs + 2 },
   pressed: { borderColor: colors.primarySoftBorder, backgroundColor: colors.primarySoft },
+  disabled: { opacity: 0.4 },
   icon: {
     width: 28,
     height: 28,

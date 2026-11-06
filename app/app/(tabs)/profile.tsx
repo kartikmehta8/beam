@@ -11,7 +11,6 @@ import { ActivityIndicator, Alert, Linking, Pressable, StyleSheet, View } from '
 import { Avatar } from '../../src/components/Avatar';
 import { pickAndUploadAvatar, useAvatarUri, type AvatarResult } from '../../src/avatar';
 import { HandleRow, WorldIdRow } from '../../src/components/IdentityRows';
-import { EnsMark } from '../../src/components/logos';
 import { LimitsCard } from '../../src/components/LimitsCard';
 import { NetworkPill } from '../../src/components/NetworkPill';
 import { Screen } from '../../src/components/Screen';
@@ -117,34 +116,24 @@ export default function ProfileScreen() {
           <Text variant="headline" numberOfLines={1} ellipsizeMode="middle">
             {email ?? 'Privy account'}
           </Text>
-          <View style={styles.identity}>
-            {address ? (
-              <Pressable
-                accessibilityRole="button"
-                accessibilityLabel={copied ? 'Address copied' : `Copy wallet address ${shortAddress(address)}`}
-                onPress={() => void copy(address)}
-                hitSlop={space.sm}
-                style={({ pressed }) => [styles.address, pressed && styles.pressed]}
-              >
-                <Text variant="mono" color="textSecondary">
-                  {copied ? 'Copied' : shortAddress(address)}
-                </Text>
-                <Icon name={copied ? 'check' : 'copy'} size={14} color={copied ? colors.success : colors.textTertiary} />
-              </Pressable>
-            ) : (
-              <Text variant="caption" color="textSecondary">
-                Creating your wallet…
+          {address ? (
+            <Pressable
+              accessibilityRole="button"
+              accessibilityLabel={copied ? 'Address copied' : `Copy wallet address ${shortAddress(address)}`}
+              onPress={() => void copy(address)}
+              hitSlop={space.sm}
+              style={({ pressed }) => [styles.address, pressed && styles.pressed]}
+            >
+              <Text variant="mono" color="textSecondary">
+                {copied ? 'Copied' : shortAddress(address)}
               </Text>
-            )}
-            {handle ? (
-              <View style={styles.handleTag}>
-                <EnsMark size={13} />
-                <Text variant="mono" color="textSecondary" numberOfLines={1} ellipsizeMode="middle">
-                  {handle}
-                </Text>
-              </View>
-            ) : null}
-          </View>
+              <Icon name={copied ? 'check' : 'copy'} size={14} color={copied ? colors.success : colors.textTertiary} />
+            </Pressable>
+          ) : (
+            <Text variant="caption" color="textSecondary">
+              Creating your wallet…
+            </Text>
+          )}
         </View>
       </Card>
 
@@ -255,9 +244,7 @@ const styles = StyleSheet.create({
     borderWidth: 2,
     borderColor: colors.surface,
   },
-  identity: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', gap: space.sm },
-  address: { flexDirection: 'row', alignItems: 'center', gap: space.sm },
-  handleTag: { flexDirection: 'row', alignItems: 'center', gap: space.xs, flexShrink: 1 },
+  address: { flexDirection: 'row', alignItems: 'center', gap: space.sm, alignSelf: 'flex-start' },
   pressed: { opacity: 0.6 },
   group: { paddingVertical: space.xs },
   signOut: {

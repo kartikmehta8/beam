@@ -5,13 +5,14 @@
  */
 import { Icon } from './Icon';
 import { useState } from 'react';
-import { ActivityIndicator, Linking, Pressable, StyleSheet, View } from 'react-native';
+import { ActivityIndicator, Linking, Pressable, StyleSheet, View, type StyleProp, type ViewStyle } from 'react-native';
 import type { Address } from 'viem';
 import { NETWORK } from '../config';
 import { shortAddress } from '../intent';
 import { useViewNetwork, viewAddressUrl } from '../viewNetwork';
 import { colors, HIT, radius, space } from '../theme';
 import { money, moneyParts } from './format';
+import { EnsMark } from './logos';
 import { ReceiveSheet } from './ReceiveSheet';
 import { Card, Text, type IconName } from './ui';
 import { useCopy } from './useCopy';
@@ -85,11 +86,28 @@ type Props = {
  */
 export function BalanceCard({ address, balance, balanceError, cap, handle }: Props) {
   const { copied, copy } = useCopy();
+  const ens = useCopy();
   const [receiveOpen, setReceiveOpen] = useState(false);
   const [view] = useViewNetwork();
   const copyAddress = () => address && void copy(address);
   const open = (url: string) => void Linking.openURL(url);
   const parts = balance !== null ? moneyParts(balance) : null;
+
+  // The copyable address chip; `chipStyle` centers it alone, or sizes it to sit beside the ENS chip.
+  const addressChip = (addr: Address, chipStyle: StyleProp<ViewStyle>) => (
+    <Pressable
+      accessibilityRole="button"
+      accessibilityLabel={copied ? 'Address copied' : `Copy wallet address ${shortAddress(addr)}`}
+      onPress={copyAddress}
+      hitSlop={space.xs}
+      style={({ pressed }) => [chipStyle, pressed && styles.pressed]}
+    >
+      <Text variant="mono" color="textSecondary" numberOfLines={1}>
+        {copied ? 'Copied' : shortAddress(addr)}
+      </Text>
+      <Icon name={copied ? 'check' : 'copy'} size={14} color={copied ? colors.success : colors.textTertiary} />
+    </Pressable>
+  );
 
   return (
     <Card style={styles.card}>
@@ -124,18 +142,28 @@ export function BalanceCard({ address, balance, balanceError, cap, handle }: Pro
         ) : null}
 
         {address ? (
-          <Pressable
-            accessibilityRole="button"
-            accessibilityLabel={copied ? 'Address copied' : `Copy wallet address ${shortAddress(address)}`}
-            onPress={copyAddress}
-            hitSlop={space.xs}
-            style={({ pressed }) => [styles.chip, pressed && styles.pressed]}
-          >
-            <Text variant="mono" color="textSecondary">
-              {copied ? 'Copied' : shortAddress(address)}
-            </Text>
-            <Icon name={copied ? 'check' : 'copy'} size={14} color={copied ? colors.success : colors.textTertiary} />
-          </Pressable>
+          handle ? (
+            // ENS present: address on the left, ENS name on the right.
+            <View style={styles.idRow}>
+              {addressChip(address, styles.chipInline)}
+              <Pressable
+                accessibilityRole="button"
+                accessibilityLabel={ens.copied ? 'ENS name copied' : `Copy your ENS name ${handle}`}
+                onPress={() => void ens.copy(handle)}
+                hitSlop={space.xs}
+                style={({ pressed }) => [styles.chipInline, pressed && styles.pressed]}
+              >
+                <EnsMark size={14} />
+                <Text variant="mono" color="textSecondary" numberOfLines={1} ellipsizeMode="middle" style={styles.chipText}>
+                  {ens.copied ? 'Copied' : handle}
+                </Text>
+                <Icon name={ens.copied ? 'check' : 'copy'} size={14} color={ens.copied ? colors.success : colors.textTertiary} />
+              </Pressable>
+            </View>
+          ) : (
+            // No ENS: a single centered address chip.
+            addressChip(address, styles.chip)
+          )
         ) : (
           <View style={styles.chip}>
             <ActivityIndicator size="small" color={colors.textTertiary} />
@@ -196,6 +224,19 @@ const styles = StyleSheet.create({
     borderRadius: radius.pill,
     backgroundColor: colors.surfaceMuted,
   },
+  idRow: { flexDirection: 'row', alignItems: 'center', alignSelf: 'stretch', gap: space.sm },
+  chipInline: {
+    flex: 1,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: space.sm,
+    minHeight: 40,
+    paddingHorizontal: space.md,
+    borderRadius: radius.pill,
+    backgroundColor: colors.surfaceMuted,
+  },
+  chipText: { flexShrink: 1 },
   actions: {
     flexDirection: 'row',
     justifyContent: 'space-between',

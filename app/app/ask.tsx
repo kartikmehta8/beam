@@ -90,7 +90,7 @@ const EXTERNAL_AGENT = 'External agent';
 
 type Turn =
   | { id: string; kind: 'user'; text: string }
-  | { id: string; kind: 'assistant'; text: string; intents: Intent[]; authorizations: Record<string, PaymentAuthorization>; clarification: Clarification | null; assessment: Assessment | null }
+  | { id: string; kind: 'assistant'; text: string; intents: Intent[]; authorizations: Record<string, PaymentAuthorization>; clarification: Clarification | null; assessment: Assessment | null; action: 'inspect' | 'pay' }
   | { id: string; kind: 'notice'; text: string; tone: 'warning' | 'danger'; icon: IconName };
 
 /** Prior chat remains readable, but every new action removes its executable cards. */
@@ -385,7 +385,7 @@ export function AskSheet({ ctxId, review, page = false }: { ctxId: string | unde
             id: randomUUID(), kind: 'assistant',
             text: external ? 'An outside agent asked for this payment. Check every detail.' : 'Review the payment details you entered.',
             intents: [result], authorizations: { [result.id]: authorizePayment(scope, result) },
-            clarification: null, assessment: null,
+            clarification: null, assessment: null, action: 'pay',
           };
       setTurns((previous) => [...previous, turn]);
     } catch {
@@ -435,7 +435,7 @@ export function AskSheet({ ctxId, review, page = false }: { ctxId: string | unde
       if (reply || intents.length || outcome.assessment) {
         added.push({
           id: randomUUID(), kind: 'assistant', text: reply, intents, authorizations,
-          clarification: outcome.clarification, assessment: outcome.assessment,
+          clarification: outcome.clarification, assessment: outcome.assessment, action,
         });
         const spoken = speakFor(intents[0] ?? null, outcome.assessment, reply);
         if (spoken) void getReadAloud().then((on) => {
@@ -456,6 +456,10 @@ export function AskSheet({ ctxId, review, page = false }: { ctxId: string | unde
   };
 
   const lastTurn = turns[turns.length - 1];
+  // A pay turn that ended in a question (e.g. "how many USDC?") keeps its pay capability
+  // for the answer, so the amount reply can finish the payment instead of silently inspecting.
+  const payFollowUp = lastTurn?.kind === 'assistant' && lastTurn.action === 'pay' && !!lastTurn.clarification;
+  const followUpAction: 'inspect' | 'pay' = payFollowUp ? 'pay' : 'inspect';
   const canSend = !!input.trim() && !busy;
   // A review card is tall; give the sheet more room once one is on screen.
   const hasIntent = turns.some((t) => t.kind === 'assistant' && t.intents.length > 0);
@@ -487,17 +491,26 @@ export function AskSheet({ ctxId, review, page = false }: { ctxId: string | unde
     );
   } else {
     const empty = turns.length === 0 && review === undefined;
-    const chips = (
+    const payLabel = context.kind === 'captured' && !excluded ? 'Pay this' : 'Prepare payment';
+    // One scrollable row of pills above the composer: the starter prompts plus the two payment actions.
+    const actionChips = review !== undefined ? null : (
       <ScrollView
         horizontal
         showsHorizontalScrollIndicator={false}
         keyboardShouldPersistTaps="handled"
-        style={[styles.quickScroll, page && styles.quickScrollPage]}
-        contentContainerStyle={styles.quick}
+        style={styles.actionBar}
+        contentContainerStyle={styles.actionBarContent}
       >
         {QUICK_ACTIONS.map((a) => (
           <SuggestionChip key={a.label} label={a.label} icon={a.icon} onPress={() => void send(a.label)} />
         ))}
+        <SuggestionChip
+          label={payLabel}
+          icon="send"
+          disabled={busy || injection.suspected || manualOpen}
+          onPress={() => void send(input.trim() ? `Pay this. ${input.trim()}` : 'Pay this', 'pay')}
+        />
+        {!manualOpen ? <SuggestionChip label="Enter payment manually" icon="edit" disabled={busy} onPress={openManual} /> : null}
       </ScrollView>
     );
     body = (
@@ -532,18 +545,7 @@ export function AskSheet({ ctxId, review, page = false }: { ctxId: string | unde
             ) : (
               <NoticeRow text="This payment link is invalid." tone="danger" icon="alert-octagon" />
             )
-          ) : (
-            <View style={styles.paymentActions}>
-              <Text variant="caption" color="textSecondary">Messages inspect by default. Use Pay this or Prepare payment to review a payment before sending.</Text>
-              <Button
-                variant="secondary"
-                label={context.kind === 'captured' && !excluded ? 'Pay this' : 'Prepare payment'}
-                icon="send"
-                disabled={busy || injection.suspected || manualOpen}
-                onPress={() => void send(input.trim() ? `Pay this. ${input.trim()}` : 'Pay this', 'pay')}
-              />
-            </View>
-          )}
+          ) : null}
           {manualOpen ? (
             <ManualPaymentForm
               recipient={manualRecipient}
@@ -554,10 +556,7 @@ export function AskSheet({ ctxId, review, page = false }: { ctxId: string | unde
               onPrepare={() => void prepareDirect(false)}
               onClose={() => { invalidate(); setManualOpen(false); }}
             />
-          ) : (
-            <Button variant="ghost" label="Enter payment manually" icon="edit" onPress={openManual} />
-          )}
-          {empty && !page ? chips : null}
+          ) : null}
           {empty && page ? (
             <View style={styles.greeting}>
               <View style={styles.greetingBeam}>
@@ -597,7 +596,7 @@ export function AskSheet({ ctxId, review, page = false }: { ctxId: string | unde
                         label={chipLabel(option)}
                         mono={option.startsWith('0x')}
                         accessibilityLabel={option}
-                        onPress={() => void send(option)}
+                        onPress={() => void send(option, turn.action)}
                       />
                     ))}
                   </View>
@@ -608,7 +607,7 @@ export function AskSheet({ ctxId, review, page = false }: { ctxId: string | unde
           {busy ? <TypingIndicator /> : null}
         </ScrollView>
 
-        {empty && page ? chips : null}
+        {actionChips}
         <View
           style={page ? [styles.pageComposer, { marginBottom: insets.bottom + space.md }] : styles.composer}
         >
@@ -630,7 +629,7 @@ export function AskSheet({ ctxId, review, page = false }: { ctxId: string | unde
             placeholderTextColor={colors.textTertiary}
             maxLength={MAX_INPUT_CHARS}
             returnKeyType="send"
-            onSubmitEditing={() => void send(input)}
+            onSubmitEditing={() => void send(input, followUpAction)}
             accessibilityLabel="Message to Beam"
             multiline={page}
             style={page ? styles.pageInput : styles.input}
@@ -652,7 +651,7 @@ export function AskSheet({ ctxId, review, page = false }: { ctxId: string | unde
               accessibilityLabel="Send"
               accessibilityState={{ disabled: !canSend, busy }}
               disabled={!canSend}
-              onPress={() => void send(input)}
+              onPress={() => void send(input, followUpAction)}
               style={({ pressed }) => [styles.send, pressed && styles.sendPressed, !canSend && styles.sendDisabled]}
             >
               <Icon name="arrow-up" size={20} color={canSend ? colors.textInverse : colors.textSecondary} />
@@ -753,6 +752,8 @@ export function AskSheet({ ctxId, review, page = false }: { ctxId: string | unde
 
 const styles = StyleSheet.create({
   paymentActions: { gap: space.sm },
+  actionBar: { flexGrow: 0, marginBottom: space.sm },
+  actionBarContent: { paddingHorizontal: space.lg, gap: space.sm },
   root: { flex: 1 },
   scrim: { backgroundColor: colors.scrim },
   page: { flex: 1, backgroundColor: colors.canvas },
@@ -772,7 +773,6 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     marginBottom: space.sm,
   },
-  quickScrollPage: { marginHorizontal: 0, marginBottom: space.md },
   pageComposer: { flexDirection: 'row', alignItems: 'flex-end', gap: space.sm, paddingHorizontal: space.lg },
   pageInput: {
     ...typeScale.body,
@@ -823,8 +823,6 @@ const styles = StyleSheet.create({
   closePressed: { backgroundColor: colors.border },
   scroll: { flexGrow: 0, flexShrink: 1 },
   scrollContent: { paddingHorizontal: space.xl, paddingTop: space.xs, paddingBottom: space.lg, gap: space.md },
-  quickScroll: { marginHorizontal: -space.xl, flexGrow: 0 },
-  quick: { paddingHorizontal: space.xl, gap: space.sm },
   turn: { gap: space.md },
   chips: { flexDirection: 'row', flexWrap: 'wrap', gap: space.sm },
   composer: {
