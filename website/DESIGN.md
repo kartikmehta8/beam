@@ -1,6 +1,6 @@
 ---
 name: Beam website
-description: Orb’s white-and-ink website system, adapted to Beam’s Android wallet and approval flows.
+description: Beam’s white-and-ink website system for the Android wallet and approval flows.
 colors:
   canvas: "#fff"
   ink: "#121314"
@@ -116,7 +116,7 @@ components:
 
 ## Overview
 
-The website inherits Orb’s white canvas, ink controls, cool gray panels and roomy editorial layout. A white Beam glyph on an ENS-blue mark identifies the wallet. The product is explained through operable examples with readable controls and visible sample states.
+The website uses a white canvas, ink controls, cool gray panels and a roomy editorial layout. A white Beam glyph on an ENS-blue mark identifies the wallet. The product is explained through operable examples with readable controls and visible sample states.
 
 The styles in `public/style.css`, `src/site.css`, `src/journey.css` and `src/preview.css` define the implementation. `PRODUCT.md` records product scope and `.impeccable/surfaces/home.md` records the home page direction.
 

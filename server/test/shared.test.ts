@@ -115,14 +115,14 @@ describe('beamPay.ts', () => {
 describe('ens.ts', () => {
   it('normalizes ENSIP-15 and rejects non-.eth or invalid names', () => {
     expect(normalizeEnsName('Rahul.ETH')).toBe('rahul.eth');
-    expect(normalizeEnsName('rahul.orbpay.eth')).toBe('rahul.orbpay.eth');
+    expect(normalizeEnsName('rahul.beamfi.eth')).toBe('rahul.beamfi.eth');
     expect(normalizeEnsName('rahul.com')).toBeNull();
     expect(normalizeEnsName('bad\u0000name.eth')).toBeNull();
     expect(normalizeEnsName('.eth')).toBeNull();
   });
 
   it('extracts unique names with a leading guard, skipping emails and URLs', () => {
-    expect(extractEnsNames('pay Rahul.eth, then (kartik.orbpay.eth) and rahul.eth again')).toEqual(['rahul.eth', 'kartik.orbpay.eth']);
+    expect(extractEnsNames('pay Rahul.eth, then (kartik.beamfi.eth) and rahul.eth again')).toEqual(['rahul.eth', 'kartik.beamfi.eth']);
     expect(extractEnsNames('mail me@rahul.eth or open rahul.eth.limo')).toEqual([]);
   });
 

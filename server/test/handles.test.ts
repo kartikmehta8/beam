@@ -37,7 +37,7 @@ const TX2: Hex = `0x${'02'.repeat(32)}`;
 const KEY: Hex = `0x${'ab'.repeat(32)}`;
 
 const env = (over: Record<string, string> = {}) => ({
-  ENS_PARENT_NAME: 'OrbPay.eth',
+  ENS_PARENT_NAME: 'BeamFi.eth',
   ENS_REGISTRAR_PRIVATE_KEY: KEY,
   ENS_HANDLE_REGISTRY: REGISTRY,
   HANDLES_STORE_PATH: join(mkdtempSync(join(tmpdir(), 'beam-handles-')), 'handles.json'),
@@ -79,13 +79,13 @@ describe('loadHandlesConfig', () => {
   });
 
   it('throws when only part of the setup is present', () => {
-    expect(() => loadHandlesConfig({ ENS_PARENT_NAME: 'orbpay.eth' })).toThrow(/ENS_REGISTRAR_PRIVATE_KEY, ENS_HANDLE_REGISTRY/);
+    expect(() => loadHandlesConfig({ ENS_PARENT_NAME: 'beamfi.eth' })).toThrow(/ENS_REGISTRAR_PRIVATE_KEY, ENS_HANDLE_REGISTRY/);
   });
 
   it('defaults to mainnet ENSv2 deployments and the Arc network', () => {
     const config = loadHandlesConfig(env())!;
     expect(config.chain.id).toBe(1);
-    expect(config.parentName).toBe('orbpay.eth');
+    expect(config.parentName).toBe('beamfi.eth');
     expect(config.contracts.verifiableFactory).toBe(getAddress(ENSV2_DEPLOYMENTS.mainnet.verifiableFactory));
     expect(config.contracts.permissionedResolverImpl).toBe(getAddress(ENSV2_DEPLOYMENTS.mainnet.permissionedResolverImpl));
     expect(config.network.chainId).toBe(5042002);
@@ -96,7 +96,7 @@ describe('loadHandlesConfig', () => {
       getAddress(ENSV2_DEPLOYMENTS.sepolia.verifiableFactory),
     );
     expect(() => loadHandlesConfig(env({ ENS_CHAIN: 'goerli' }))).toThrow(/ENS_CHAIN/);
-    expect(() => loadHandlesConfig(env({ ENS_PARENT_NAME: 'orb.pay.eth' }))).toThrow(/\.eth name/);
+    expect(() => loadHandlesConfig(env({ ENS_PARENT_NAME: 'beam.fi.eth' }))).toThrow(/\.eth name/);
     expect(() => loadHandlesConfig(env({ ENS_REGISTRAR_PRIVATE_KEY: '0x12' }))).toThrow(/32-byte/);
     expect(() => loadHandlesConfig(env({ ENS_HANDLE_REGISTRY: 'nope' }))).toThrow(/ENS_HANDLE_REGISTRY/);
   });
@@ -151,7 +151,7 @@ describe('handle routes', () => {
     it('rejects bad and reserved labels without touching the chain', async () => {
       expect(await (await app().request('/ab')).json()).toEqual({
         label: 'ab',
-        name: 'ab.orbpay.eth',
+        name: 'ab.beamfi.eth',
         available: false,
         reason: 'Use 3 to 20 characters.',
       });
@@ -161,7 +161,7 @@ describe('handle routes', () => {
     });
 
     it('reads the registry status', async () => {
-      expect(await (await app().request('/Kartik')).json()).toEqual({ label: 'kartik', name: 'kartik.orbpay.eth', available: true });
+      expect(await (await app().request('/Kartik')).json()).toEqual({ label: 'kartik', name: 'kartik.beamfi.eth', available: true });
       expect(ens.readContract).toHaveBeenCalledWith(
         expect.objectContaining({ address: REGISTRY, functionName: 'getStatus', args: [BigInt(labelhash('kartik'))] }),
       );
@@ -191,7 +191,7 @@ describe('handle routes', () => {
     it('registers the subname, then deploys a wallet-owned resolver with the initial records', async () => {
       const res = await claim(okBody);
       expect(res.status).toBe(200);
-      expect(await res.json()).toEqual({ name: 'kartik.orbpay.eth', txHash: TX1 });
+      expect(await res.json()).toEqual({ name: 'kartik.beamfi.eth', txHash: TX1 });
       expect(take).toHaveBeenCalledWith('appr_1', WALLET);
       expect(send).toHaveBeenCalledTimes(2);
 
@@ -202,7 +202,7 @@ describe('handle routes', () => {
       expect(register.functionName).toBe('register');
       expect(register.args).toEqual(['kartik', WALLET, zeroAddress, RESOLVER, HANDLE_OWNER_ROLES, NO_EXPIRY]);
       expect(ens.readContract).toHaveBeenCalledWith(
-        expect.objectContaining({ functionName: 'predictProxyAddress', args: [REGISTRAR, resolverSalt('kartik.orbpay.eth', WALLET)] }),
+        expect.objectContaining({ functionName: 'predictProxyAddress', args: [REGISTRAR, resolverSalt('kartik.beamfi.eth', WALLET)] }),
       );
 
       // 2. deployProxy(PermissionedResolverImpl, salt, initialize(grants, calls)) on the VerifiableFactory.
@@ -212,7 +212,7 @@ describe('handle routes', () => {
       expect(deploy.functionName).toBe('deployProxy');
       const [impl, salt, initData] = deploy.args as readonly [Address, bigint, Hex];
       expect(impl).toBe(config.contracts.permissionedResolverImpl);
-      expect(salt).toBe(resolverSalt('kartik.orbpay.eth', WALLET));
+      expect(salt).toBe(resolverSalt('kartik.beamfi.eth', WALLET));
 
       const init = decodeFunctionData({ abi: permissionedResolverAbi, data: initData });
       expect(init.functionName).toBe('initialize');
@@ -221,7 +221,7 @@ describe('handle routes', () => {
       expect(grants).toEqual([{ account: WALLET, roleBitmap: ALL_ROLES }]);
       expect(grants.some((g) => g.account === REGISTRAR)).toBe(false);
 
-      const dnsName = toHex(packetToBytes('kartik.orbpay.eth'));
+      const dnsName = toHex(packetToBytes('kartik.beamfi.eth'));
       const records = calls.map((data) => {
         const call = decodeFunctionData({ abi: permissionedResolverAbi, data });
         return [call.functionName, ...(call.args as readonly unknown[])];
@@ -243,7 +243,7 @@ describe('handle routes', () => {
       await claim(okBody);
       send.mockClear();
       const res = await claim({ ...okBody, label: 'another', approvalId: 'appr_2' });
-      expect(await res.json()).toEqual({ name: 'kartik.orbpay.eth' });
+      expect(await res.json()).toEqual({ name: 'kartik.beamfi.eth' });
       expect(send).not.toHaveBeenCalled();
 
       // Survives a restart: a new store on the same file still knows this human.
@@ -255,7 +255,7 @@ describe('handle routes', () => {
       chain.owner = WALLET;
       chain.code = '0x6001';
       const res = await claim(okBody);
-      expect(await res.json()).toEqual({ name: 'kartik.orbpay.eth' });
+      expect(await res.json()).toEqual({ name: 'kartik.beamfi.eth' });
       expect(send).not.toHaveBeenCalled();
     });
 
@@ -320,7 +320,7 @@ describe('handle routes', () => {
     it('finds the handle only while the wallet still owns it onchain', async () => {
       await claim(okBody);
       chain.owner = WALLET;
-      expect(await (await app().request(`/?wallet=${WALLET}`)).json()).toEqual({ name: 'kartik.orbpay.eth' });
+      expect(await (await app().request(`/?wallet=${WALLET}`)).json()).toEqual({ name: 'kartik.beamfi.eth' });
       chain.owner = zeroAddress; // revoked
       expect(await (await app().request(`/?wallet=${WALLET}`)).json()).toEqual({ name: null });
       expect(await (await app().request(`/?wallet=${OTHER}`)).json()).toEqual({ name: null });

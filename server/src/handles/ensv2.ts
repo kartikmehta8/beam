@@ -15,7 +15,7 @@ export type EnsChainKey = 'mainnet' | 'sepolia';
 
 /** ENSv2 protocol contracts Beam needs. */
 export type Ensv2Deployment = {
-  /** `.eth` PermissionedRegistry: holds the parent name (e.g. orbpay.eth). */
+  /** `.eth` PermissionedRegistry: holds the parent name (e.g. beamfi.eth). */
   ethRegistry: Address;
   /** Deploys UUPS proxies at deterministic CREATE2 addresses. */
   verifiableFactory: Address;

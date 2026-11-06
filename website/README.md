@@ -1,6 +1,6 @@
 # Beam website
 
-A Beam adaptation of the Orb landing page, using the same layout and interaction components.
+The Beam landing page and its layout and interaction components.
 
 ```sh
 npm ci

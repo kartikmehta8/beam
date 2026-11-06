@@ -1,5 +1,5 @@
 /**
- * @file One-time ENSv2 setup for Beam handles under a parent name (e.g. orbpay.eth).
+ * @file One-time ENSv2 setup for Beam handles under a parent name (e.g. beamfi.eth).
  *
  * 1. Checks the parent is REGISTERED in the ENSv2 `.eth` registry and owned by the owner key.
  * 2. Deploys our subname registry: a UserRegistry proxy (a PermissionedRegistry) via the

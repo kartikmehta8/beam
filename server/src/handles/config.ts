@@ -18,7 +18,7 @@ export type HandlesConfig = {
   chainKey: EnsChainKey;
   /** viem chain for ENS (Ethereum mainnet or Sepolia). */
   chain: Chain;
-  /** Normalized parent, e.g. "orbpay.eth". */
+  /** Normalized parent, e.g. "beamfi.eth". */
   parentName: string;
   /** Server key: may only create and revoke handles in `registry`. */
   registrarKey: Hex;
@@ -62,8 +62,8 @@ function addressEnv(env: Env, name: string, fallback: Address): Address {
 
 /**
  * Normalizes a parent name and requires a `.eth` second-level name (what ENSv2's ETH registry holds).
- * @param raw e.g. "OrbPay.eth".
- * @returns e.g. "orbpay.eth".
+ * @param raw e.g. "BeamFi.eth".
+ * @returns e.g. "beamfi.eth".
  */
 export function parseParentName(raw: string): string {
   let name: string;
@@ -72,7 +72,7 @@ export function parseParentName(raw: string): string {
   } catch {
     throw new Error(`ENS_PARENT_NAME "${raw}" is not a valid ENS name.`);
   }
-  if (!/^[^.]+\.eth$/.test(name)) throw new Error('ENS_PARENT_NAME must be a .eth name like orbpay.eth.');
+  if (!/^[^.]+\.eth$/.test(name)) throw new Error('ENS_PARENT_NAME must be a .eth name like beamfi.eth.');
   return name;
 }
 

@@ -104,7 +104,7 @@ export function createHandleWriter(ensClient: PublicClient, config: HandlesConfi
 /**
  * CREATE2 salt for a handle's resolver. Includes the wallet so a resolver is never
  * reused for a different owner of the same label.
- * @param name Full handle, e.g. "kartik.orbpay.eth".
+ * @param name Full handle, e.g. "kartik.beamfi.eth".
  * @param wallet Handle owner.
  * @returns Salt for `deployProxy`.
  */

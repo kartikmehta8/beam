@@ -1,12 +1,12 @@
 # Beam handles on ENSv2
 
-Every verified human can claim one **Beam handle** like `kartik.useorb.eth`. The handle is an ENSv2 subname on Ethereum mainnet, in our own Permissioned Registry, with its own Permissioned Resolver whose roles belong to the user's wallet. Any wallet or agent can then resolve the handle to learn where and how the person wants to be paid (`addr` for Arc's coin type, `beam.network`, `beam.token`).
+Every verified human can claim one **Beam handle** like `kartik.beamfi.eth`. The handle is an ENSv2 subname on Ethereum mainnet, in our own Permissioned Registry, with its own Permissioned Resolver whose roles belong to the user's wallet. Any wallet or agent can then resolve the handle to learn where and how the person wants to be paid (`addr` for Arc's coin type, `beam.network`, `beam.token`).
 
 ENSv2 is central here, not decoration:
 
 - **Enhanced Access Control** is what makes "Beam can't redirect your payments" true. The server key may only create and revoke handles. It never holds a role on any handle's records.
 - **Per-name Permissioned Resolvers** (deployed through the Verifiable Factory) are the only way to give each user exclusive record rights: Permissioned Resolver roles are resolver-wide, so a shared resolver would let every writer touch every name.
-- **Hierarchical registries**: our registry is the parent name's subregistry, so `kartik.useorb.eth` is a real ENSv2 token (non-transferable by policy) that the Universal Resolver finds by walking root, `eth`, `useorb`, `kartik`.
+- **Hierarchical registries**: our registry is the parent name's subregistry, so `kartik.beamfi.eth` is a real ENSv2 token (non-transferable by policy) that the Universal Resolver finds by walking root, `eth`, `beamfi`, `kartik`.
 - **World ID** is the Sybil gate: one handle per `humanHash`.
 
 ## Verified facts (2026-10-27)
@@ -28,7 +28,7 @@ The whole flow (setup script, claim through these routes, resolution through vie
 ## Design
 
 ```
-.eth registry (ENSv2)          useorb.eth  owner: parent owner (cold key)
+.eth registry (ENSv2)          beamfi.eth  owner: parent owner (cold key)
   └─ subregistry ───────────▶  Beam UserRegistry (PermissionedRegistry proxy)
         root roles: registrar key  REGISTRAR | UNREGISTER
                     parent owner   REGISTRAR_ADMIN | UNREGISTER_ADMIN | SET_PARENT
@@ -51,7 +51,7 @@ Both steps are resumable: a retry skips a name already registered to the same wa
 | Actor | Can | Cannot |
 | --- | --- | --- |
 | Registrar key (server) | create handles; revoke (`unregister`) a handle for abuse | change any record, change a handle's resolver, upgrade anything, transfer tokens |
-| Parent owner (cold key) | rotate the registrar key; replace the whole subregistry of `useorb.eth` (it owns the parent) | edit a user's records |
+| Parent owner (cold key) | rotate the registrar key; replace the whole subregistry of `beamfi.eth` (it owns the parent) | edit a user's records |
 | User wallet | every record on its resolver, point the handle at another resolver, delegate per-key roles | transfer the handle |
 
 Revocation is visible onchain (`LabelUnregistered`). A revoked human stays recorded in the store, so they cannot claim again.
@@ -73,11 +73,11 @@ Claims are serialized in process and wait for both receipts (about two blocks on
 
 On mainnet, new `.eth` names are registered only through the ENSv2 `ETHRegistrar` (commit-reveal, paid in a stablecoin) via the ENS app. An existing ENSv1 name must first be migrated (transfer to `UnlockedMigrationController`), see [Migration](https://docs.ens.domains/ensv2/migration).
 
-Pick a parent with **no stale ENSv1 registry entry**. The mainnet Universal Resolver still consults the v1 registry first, so a leftover v1 resolver hides the whole ENSv2 subtree. As of 2026-10-27, `orbpay.eth` has one (expired, wrapped, PublicResolver still set), while `useorb.eth` and `orbpays.eth` are clean in both v1 and v2. Check a candidate:
+Pick a parent with **no stale ENSv1 registry entry**. The mainnet Universal Resolver still consults the v1 registry first, so a leftover v1 resolver hides the whole ENSv2 subtree. `beamfi.eth` is clean in both v1 and v2 (no stale resolver). Check a candidate:
 
 ```sh
-cast call 0x00000000000C2E074eC69A0dFb2997BA6C7d2e1e 'resolver(bytes32)(address)' $(cast namehash useorb.eth) --rpc-url $ENS_RPC_URL   # want 0x000…0
-cast call 0xf60aba43e1f7f3dab1186ff03b561401c9df85e2 'getStatus(uint256)(uint8)' $(cast keccak useorb) --rpc-url $ENS_RPC_URL     # 0 = available
+cast call 0x00000000000C2E074eC69A0dFb2997BA6C7d2e1e 'resolver(bytes32)(address)' $(cast namehash beamfi.eth) --rpc-url $ENS_RPC_URL   # want 0x000…0
+cast call 0xf60aba43e1f7f3dab1186ff03b561401c9df85e2 'getStatus(uint256)(uint8)' $(cast keccak beamfi) --rpc-url $ENS_RPC_URL     # 0 = available
 ```
 
 ### 2. Run the setup script (Sepolia first, then mainnet)
@@ -86,7 +86,7 @@ Use two keys: the **parent owner** (the account that registered the parent) and 
 
 ```sh
 cd server
-ENS_CHAIN=sepolia ENS_RPC_URL=https://… ENS_PARENT_NAME=useorb.eth \
+ENS_CHAIN=sepolia ENS_RPC_URL=https://… ENS_PARENT_NAME=beamfi.eth \
 ENS_OWNER_PRIVATE_KEY=0x… ENS_REGISTRAR_ADDRESS=0x… \
 npx tsx scripts/ens-setup.ts              # dry run: checks the parent, prints the planned transactions
 npx tsx scripts/ens-setup.ts --broadcast  # sends them, verifies the registrar's roles, prints the .env lines
@@ -99,7 +99,7 @@ On Sepolia, register the parent at sepolia.app.ens.domains (it accepts the freel
 ```sh
 ENS_CHAIN=mainnet                 # or sepolia
 ENS_RPC_URL=https://…             # used by the server's ENS client; claims send through it too
-ENS_PARENT_NAME=useorb.eth
+ENS_PARENT_NAME=beamfi.eth
 ENS_REGISTRAR_PRIVATE_KEY=0x…     # create/revoke only; fund with a little ETH
 ENS_HANDLE_REGISTRY=0x…           # printed by ens-setup
 BEAM_REPO_URL=https://github.com/… # written to each handle's url record
@@ -123,7 +123,7 @@ import { mainnet } from 'viem/chains';
 import { toCoinType } from 'viem/ens';
 
 const client = createPublicClient({ chain: mainnet, transport: http() });
-const name = 'kartik.useorb.eth';
+const name = 'kartik.beamfi.eth';
 await client.getEnsAddress({ name, coinType: toCoinType(5042002) }); // Arc address
 await client.getEnsAddress({ name });                                // default EVM address
 await client.getEnsText({ name, key: 'beam.network' });               // "arc"
