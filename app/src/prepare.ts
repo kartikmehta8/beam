@@ -10,6 +10,7 @@ import { transferDeps } from './chain';
 import { config, NETWORK } from './config';
 import { isTransferError, prepareTransfer, type Intent, type IntentOrigin, type ScreenContextInput, type TransferError } from './intent';
 import { getNames, getRecipients } from './storage';
+import { scanInjection } from './injection';
 import { withDeviceReasons } from './validateIntent';
 
 /** Copy shown while this build has no BeamPay address. */
@@ -48,6 +49,9 @@ export function toDecimal(wei: bigint): string {
  * @returns The intent, or a `TransferError` whose message is user-facing copy.
  */
 export async function prepareOnDevice(req: DeviceRequest): Promise<Intent | TransferError> {
+  if (req.context && scanInjection(req.context.text).suspected) {
+    return { error: 'PROMPT_INJECTION_BLOCKED', message: 'Payment from this captured context is blocked. Enter the recipient and amount manually to continue.' };
+  }
   if (!config.beamPay) return { error: 'RPC_ERROR', message: BEAMPAY_MISSING };
   const result = await prepareTransfer(transferDeps, {
     id: req.id,

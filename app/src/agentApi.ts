@@ -25,7 +25,8 @@ import {
   type TransferError,
 } from './intent';
 import type { LimitState } from './limits';
-import { RISK_LEVELS, RISK_SIGNALS, type Assessment } from './risk';
+import { RISK_LEVELS, RISK_SIGNALS, screenAssessment, type Assessment } from './risk';
+import { scanInjection } from './injection';
 import { prepareOnDevice, toDecimal } from './prepare';
 import { loadServerStatus } from './serverApi';
 import { isRecord, isStringArray, isWeiString } from './storage';
@@ -48,6 +49,7 @@ export type AgentContext = {
 
 type AgentRequest = {
   requestId: string;
+  action: 'inspect' | 'pay';
   messages: ChatTurn[];
   context: AgentContext | null;
   wallet: { address: Address; chainId: number };
@@ -172,6 +174,8 @@ type TurnOutcome = {
 };
 
 type TurnInput = {
+  /** Explicit UI action for this turn. Omitted/unknown values grant no payment permission. */
+  action?: 'inspect' | 'pay';
   /** Conversation so far, oldest first, ending with the new user message. */
   history: ChatTurn[];
   /** Context to share, or null when unavailable or excluded. */
@@ -200,6 +204,22 @@ const NAME_MISMATCH: TransferError = { error: 'NAME_NOT_FOUND', message: 'Name r
  */
 export async function planTurn(input: TurnInput): Promise<TurnOutcome> {
   const { history, context, wallet, limits, signal } = input;
+  const action = input.action === 'pay' ? 'pay' : 'inspect';
+  const assertActive = () => { if (signal.aborted) throw new Error('Request cancelled'); };
+  assertActive();
+  const assessmentFor = (reported: Assessment | null, hasIntents: boolean) => screenAssessment({
+    contextText: context?.text ?? null,
+    lastUserText: history.filter((t) => t.role === 'user').at(-1)?.text ?? '',
+    reported,
+    hasIntents,
+  });
+  if (context && scanInjection(context.text).suspected) {
+    return {
+      notice: null,
+      reply: 'This screen contains instructions that may be trying to manipulate Beam. Payment from this screen has been blocked. You can enter payment details manually.',
+      intents: [], clarification: null, assessment: null,
+    };
+  }
   const userTexts = history.filter((t) => t.role === 'user').map((t) => t.text);
   const contextInput: ScreenContextInput | null = context && {
     source: context.source,
@@ -222,9 +242,11 @@ export async function planTurn(input: TurnInput): Promise<TurnOutcome> {
   let failure: AgentErrorKind;
   try {
     if ((await loadServerStatus()).kind === 'mismatch') throw new AgentError('mismatch', 'Server network differs');
+    assertActive();
     const res = await askAgent(
       {
         requestId: randomUUID(),
+        action,
         messages: history.slice(-MAX_HISTORY),
         context,
         wallet: { address: wallet, chainId: NETWORK.chainId },
@@ -232,6 +254,14 @@ export async function planTurn(input: TurnInput): Promise<TurnOutcome> {
       },
       signal,
     );
+    assertActive();
+    // The phone enforces its own UI permission even against an older or compromised server.
+    if (action !== 'pay' && res.intents.length) {
+      return {
+        notice: null, reply: 'This was an inspection request. No payment was prepared. Choose Prepare payment if you want to pay.',
+        intents: [], clarification: null, assessment: assessmentFor(res.assessment, false),
+      };
+    }
     const results = await Promise.all(
       res.intents.map(async (p): Promise<Intent | TransferError> => {
         const local = await prepare(p.id, p.toName ?? p.to, formatUnits(BigInt(p.amountWei), 18), 'agent');
@@ -239,13 +269,14 @@ export async function planTurn(input: TurnInput): Promise<TurnOutcome> {
         return toChecksumAddress(p.to) === local.to ? local : NAME_MISMATCH;
       }),
     );
+    assertActive();
     const errors = [...new Set(results.filter(isTransferError).map((r) => r.message))];
     return {
       notice: null,
       reply: [res.reply, ...errors].filter(Boolean).join('\n\n'),
       intents: results.filter((r): r is Intent => !isTransferError(r)),
       clarification: res.clarification,
-      assessment: res.assessment,
+      assessment: assessmentFor(res.assessment, results.some((r) => !isTransferError(r))),
     };
   } catch (e) {
     if (signal.aborted || !(e instanceof AgentError)) throw e;
@@ -256,12 +287,17 @@ export async function planTurn(input: TurnInput): Promise<TurnOutcome> {
     return { notice: { kind: failure, text: 'Agent auth failed (check token)', tone: 'danger' }, reply: '', intents: [], clarification: null, assessment: null };
   }
   const notice: TurnOutcome['notice'] = { kind: failure, ...FALLBACK_NOTICE[failure] };
+  assertActive();
+  if (action !== 'pay') {
+    return { notice, reply: 'The agent is unavailable. No payment was prepared. Choose Prepare payment to use the basic payment parser.', intents: [], clarification: null, assessment: assessmentFor(null, false) };
+  }
   const parsed = parseFallback({ contextText: context?.text ?? null, userTexts, network: NETWORK });
   if (parsed.kind === 'clarify') {
-    return { notice, reply: '', intents: [], clarification: { question: parsed.question, options: parsed.options }, assessment: null };
+    return { notice, reply: '', intents: [], clarification: { question: parsed.question, options: parsed.options }, assessment: assessmentFor(null, false) };
   }
   const result = await prepare(randomUUID(), parsed.to, parsed.amount, 'fallback');
+  assertActive();
   return isTransferError(result)
-    ? { notice, reply: result.message, intents: [], clarification: null, assessment: null }
-    : { notice, reply: '', intents: [result], clarification: null, assessment: null };
+    ? { notice, reply: result.message, intents: [], clarification: null, assessment: assessmentFor(null, false) }
+    : { notice, reply: '', intents: [result], clarification: null, assessment: assessmentFor(null, true) };
 }

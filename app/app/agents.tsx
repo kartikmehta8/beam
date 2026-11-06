@@ -77,7 +77,7 @@ export default function AgentsScreen() {
         <SectionHeader title="Connect" />
         <Card style={styles.connect}>
           <Text variant="caption" color="textSecondary">
-            Add this to your agent's MCP config. Beam's MCP runs locally over stdio, so there is no URL or API key.
+            Add this to your agent’s MCP config. Beam’s MCP runs locally over stdio, so there is no URL or API key.
           </Text>
           <Pressable
             accessibilityRole="button"

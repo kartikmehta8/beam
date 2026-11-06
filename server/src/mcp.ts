@@ -60,6 +60,8 @@ export const mcpPrepareInput = preparePayment.input.extend({
  */
 export function mcpCtx(deps: McpDeps, contextText: string | null): ToolCtx {
   return {
+    // This grants proposal computation only; every external proposal still needs local World ID review.
+    action: 'pay',
     chain: deps.chain,
     ens: deps.ens,
     network: deps.network,

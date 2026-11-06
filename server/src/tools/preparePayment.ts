@@ -6,7 +6,7 @@
 import { randomUUID } from 'node:crypto';
 import { z } from 'zod';
 import { isTransferError, MAX_INTENTS_PER_REQUEST, prepareTransfer, shortAddress, type Intent } from '../intent';
-import { defineTool, resolverFor, toolError, type ToolCtx, type ToolOutput } from './tool';
+import { defineTool, paymentBlock, resolverFor, toolError, type ToolCtx, type ToolOutput } from './tool';
 
 /** Tool input; MCP extends it with `context`. */
 const input = z.object({
@@ -33,6 +33,8 @@ function summarize(intent: Intent): string {
  * @returns Tool output: `{ ok, intentId, summary, route, approvalReasons, warnings }` or a `{ error, message }`.
  */
 export async function runPreparePayment(ctx: ToolCtx, args: z.infer<typeof input>): Promise<ToolOutput> {
+  const blocked = paymentBlock(ctx);
+  if (blocked) return blocked;
   if (ctx.intents.length >= MAX_INTENTS_PER_REQUEST) {
     return toolError('TOO_MANY_INTENTS', `At most ${MAX_INTENTS_PER_REQUEST} payments per request.`);
   }

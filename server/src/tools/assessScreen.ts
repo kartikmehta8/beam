@@ -12,7 +12,7 @@ import { defineTool } from './tool';
 export const assessScreen = defineTool({
   name: 'assess_screen',
   description: () =>
-    'Records your safety verdict on the <screen> text: safe, caution or scam, plus the scam signals you see. ' +
+    'Records your safety verdict on the untrusted get_screen_context result: safe, caution or scam, plus the scam signals you see. ' +
     'Call it when the user asks if something is safe, legit or a scam, and before prepare_payment when the payment comes from screen text. ' +
     'Signals: CREDENTIAL_REQUEST (asks for OTP, PIN, password, seed phrase), REMOTE_ACCESS (install an app, share screen, AnyDesk), ' +
     'PAY_TO_RECEIVE (pay a fee to receive money, refund or prize), TOO_GOOD_TO_BE_TRUE (prize, airdrop, guaranteed returns), ' +

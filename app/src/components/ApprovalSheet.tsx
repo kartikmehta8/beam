@@ -8,7 +8,7 @@
 import { Icon } from './Icon';
 import * as Haptics from 'expo-haptics';
 import { useState } from 'react';
-import { ActivityIndicator, Linking, Pressable, StyleSheet, View } from 'react-native';
+import { ActivityIndicator, Linking, StyleSheet, View } from 'react-native';
 import QRCodeStyled from 'react-native-qrcode-styled';
 import type { ApprovalRequest } from '../api';
 import type { ApprovalOutcome } from '../approvals';

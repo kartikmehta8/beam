@@ -5,8 +5,10 @@
  *
  * On mount it consumes the screen context once (or decodes the review link),
  * gates on the Privy session and resumes any pending payment. A review link is
- * untrusted: its payment is rebuilt with `prepareTransfer` (origin `mcp`, so it
- * always needs World ID approval). Dismissing (scrim, close, hardware back)
+ * untrusted: a deliberate review tap rebuilds its payment locally (origin
+ * `mcp`, so it always needs World ID approval). Messages inspect by default;
+ * only explicit payment actions issue revocable local authorizations.
+ * Dismissing (scrim, close, hardware back)
  * aborts the in-flight request, resets the stack to the Wallet tab and moves
  * the task to back.
  */
@@ -15,7 +17,7 @@ import type { NavigationProp, ParamListBase } from '@react-navigation/native';
 import * as Clipboard from 'expo-clipboard';
 import { randomUUID } from 'expo-crypto';
 import * as Haptics from 'expo-haptics';
-import { router, useLocalSearchParams, useNavigation } from 'expo-router';
+import { router, useFocusEffect, useLocalSearchParams, useNavigation } from 'expo-router';
 import { useCallback, useEffect, useRef, useState, type ReactNode } from 'react';
 import {
   ActivityIndicator,
@@ -41,6 +43,8 @@ import { PendingBanner, SetupBanner } from '../src/components/Banner';
 import { BeamGlyph, BrandMark } from '../src/components/BrandMark';
 import { ContextChip, type CapturedContext, type ContextState } from '../src/components/ContextChip';
 import { IntentCard } from '../src/components/IntentCard';
+import { InjectionWarning } from '../src/components/InjectionWarning';
+import { ManualPaymentForm } from '../src/components/ManualPaymentForm';
 import { SafetyCard, SIGNAL_COPY } from '../src/components/RiskVerdict';
 import { MessageBubble, NoticeRow, TypingIndicator } from '../src/components/MessageBubble';
 import { NetworkPill } from '../src/components/NetworkPill';
@@ -51,6 +55,15 @@ import { usePendingTx, useServerStatus, useWallet } from '../src/hooks';
 import { isTransferError, type Intent } from '../src/intent';
 import { getLimitState } from '../src/limits';
 import { prepareOnDevice } from '../src/prepare';
+import { NETWORK } from '../src/config';
+import { scanInjection } from '../src/injection';
+import {
+  authorizePayment,
+  createPaymentScope,
+  revokePaymentScope,
+  type PaymentAuthorization,
+  type PaymentScope,
+} from '../src/paymentAuthorization';
 import { colors, HIT, radius, shadow, space, type as typeScale } from '../src/theme';
 
 /** Same cap the screen reader applies; clipboard text is held to it too. */
@@ -60,7 +73,6 @@ const MAX_INPUT_CHARS = 500;
 const CLOSE = 36;
 
 const QUICK_ACTIONS: { label: string; icon: IconName }[] = [
-  { label: 'Pay this', icon: 'send' },
   { label: 'What is this address?', icon: 'search' },
   { label: 'My balance', icon: 'pie-chart' },
 ];
@@ -78,8 +90,13 @@ const EXTERNAL_AGENT = 'External agent';
 
 type Turn =
   | { id: string; kind: 'user'; text: string }
-  | { id: string; kind: 'assistant'; text: string; intents: Intent[]; clarification: Clarification | null; assessment: Assessment | null }
+  | { id: string; kind: 'assistant'; text: string; intents: Intent[]; authorizations: Record<string, PaymentAuthorization>; clarification: Clarification | null; assessment: Assessment | null }
   | { id: string; kind: 'notice'; text: string; tone: 'warning' | 'danger'; icon: IconName };
+
+/** Prior chat remains readable, but every new action removes its executable cards. */
+function withoutPayments(turns: Turn[]): Turn[] {
+  return turns.map((turn) => turn.kind === 'assistant' ? { ...turn, intents: [], authorizations: {} } : turn);
+}
 
 /**
  * Runs a native call that may be missing (Expo Go, iOS) or throw.
@@ -211,11 +228,42 @@ export function AskSheet({ ctxId, review, page = false }: { ctxId: string | unde
   const [turns, setTurns] = useState<Turn[]>([]);
   const [input, setInput] = useState('');
   const [busy, setBusy] = useState(false);
+  const [manualOpen, setManualOpen] = useState(false);
+  const [manualRecipient, setManualRecipient] = useState('');
+  const [manualAmount, setManualAmount] = useState('');
   const abortRef = useRef<AbortController | null>(null);
+  const generation = useRef(0);
+  const scopeRef = useRef<PaymentScope | null>(null);
   const scrollRef = useRef<ScrollView>(null);
   const inputRef = useRef<TextInput>(null);
   const progress = useRef(new Animated.Value(0)).current;
   const closing = useRef(false);
+
+  // Synchronous revocation protects even an already-open biometric/approval dialog.
+  const invalidate = useCallback(() => {
+    generation.current += 1;
+    abortRef.current?.abort();
+    abortRef.current = null;
+    revokePaymentScope(scopeRef.current);
+    scopeRef.current = null;
+    setBusy(false);
+    setTurns(withoutPayments);
+    return generation.current;
+  }, []);
+
+  useEffect(() => {
+    invalidate();
+    return () => {
+      generation.current += 1;
+      abortRef.current?.abort();
+      revokePaymentScope(scopeRef.current);
+      stopSpeaking();
+    };
+  }, [address, invalidate]);
+
+  const injection = scanInjection(context.kind === 'captured' ? context.ctx.text : '');
+
+  useFocusEffect(useCallback(() => () => { invalidate(); }, [invalidate]));
 
   useEffect(() => {
     if (!page) Animated.spring(progress, { toValue: 1, damping: 26, stiffness: 260, overshootClamping: true, useNativeDriver: true }).start();
@@ -225,12 +273,13 @@ export function AskSheet({ ctxId, review, page = false }: { ctxId: string | unde
   const dismiss = useCallback(() => {
     if (closing.current) return;
     closing.current = true;
-    abortRef.current?.abort();
+    invalidate();
+    stopSpeaking();
     Animated.timing(progress, { toValue: 0, duration: 180, easing: Easing.in(Easing.cubic), useNativeDriver: true }).start(() => {
       router.replace('/');
       tryNative(() => BubbleOverlay?.minimizeApp(), undefined);
     });
-  }, [progress]);
+  }, [progress, invalidate]);
 
   useEffect(() => {
     if (page) return;
@@ -241,62 +290,33 @@ export function AskSheet({ ctxId, review, page = false }: { ctxId: string | unde
     return () => sub.remove();
   }, [dismiss, page]);
 
-  // Voice input: the native speech dialog fills the message box; it never sends.
+  // Voice input only edits the user's message; it grants no payment permission.
   const listenToInput = useCallback(async () => {
+    const call = invalidate();
     try {
       const said = await BubbleOverlay?.listen();
-      if (said) setInput((prev) => (prev ? `${prev} ${said}` : said));
+      if (said && generation.current === call) setInput((prev) => (prev ? `${prev} ${said}` : said).slice(0, MAX_INPUT_CHARS));
     } catch {
-      // No speech recognizer on this device; leave the box as it is.
+      // Leave the message unchanged if no speech recognizer is available.
     }
-  }, []);
-
-  // An external agent's payment: rebuild it on the device once the wallet is ready.
-  const reviewed = useRef(false);
-  useEffect(() => {
-    if (review === undefined || !address || reviewed.current) return;
-    reviewed.current = true;
-    if (!payload) {
-      setTurns([{ id: randomUUID(), kind: 'notice', text: 'This payment link is invalid.', tone: 'danger', icon: 'alert-octagon' }]);
-      return;
-    }
-    void (async () => {
-      setBusy(true);
-      const result = await getLimitState()
-        .then((limits) =>
-          prepareOnDevice({
-            id: payload.intentId,
-            to: payload.to,
-            amount: payload.amount,
-            wallet: address,
-            remainingWei: limits.remainingWei,
-            context: { source: 'clipboard', appLabel: EXTERNAL_AGENT, text: payload.context },
-            userTexts: [],
-            parsedBy: 'agent',
-            origin: 'mcp',
-          }),
-        )
-        .catch(() => null);
-      setBusy(false);
-      const turn: Turn =
-        result && !isTransferError(result)
-          ? { id: randomUUID(), kind: 'assistant', text: 'An outside agent asked for this payment. Check every detail.', intents: [result], clarification: null, assessment: null }
-          : { id: randomUUID(), kind: 'notice', text: result?.message ?? 'Something went wrong. Try again.', tone: 'danger', icon: 'alert-circle' };
-      setTurns([turn]);
-    })();
-  }, [review, payload, address]);
+  }, [invalidate]);
 
   const readClipboard = async () => {
+    const call = invalidate();
     setClipboardError(null);
     const text = await Clipboard.hasStringAsync()
       .then((has) => (has ? Clipboard.getStringAsync() : ''))
       .catch(() => '');
+    if (generation.current !== call) return;
     if (!text.trim()) {
       setClipboardError('Clipboard is empty.');
       return;
     }
     void Haptics.selectionAsync();
     setExcluded(false);
+    // A new context starts a new conversation, so previous context-derived replies
+    // and clarification options cannot be promoted into this payment request.
+    setTurns([]);
     setContext({
       kind: 'captured',
       ctx: {
@@ -309,53 +329,129 @@ export function AskSheet({ ctxId, review, page = false }: { ctxId: string | unde
     });
   };
 
-  const send = async (raw: string) => {
+  const changeExcluded = (next: boolean) => {
+    invalidate();
+    setTurns([]);
+    setExcluded(next);
+  };
+
+  const openManual = () => {
+    invalidate();
+    // These fields are always blank: neither model output nor captured text is
+    // ever copied into the user-authored payment path.
+    setManualRecipient('');
+    setManualAmount('');
+    setManualOpen(true);
+  };
+
+  const prepareDirect = async (external: boolean) => {
+    if (!address || busy) return;
+    if (external && (!payload || scanInjection(payload.context).suspected)) return;
+    const recipient = manualRecipient.trim();
+    const amount = manualAmount.trim();
+    if (!external && (!recipient || !amount)) return;
+    const call = invalidate();
+    const scope = createPaymentScope(address);
+    scopeRef.current = scope;
+    setBusy(true);
+    try {
+      const limits = await getLimitState();
+      if (generation.current !== call) return;
+      const result = await prepareOnDevice(external && payload ? {
+        id: payload.intentId,
+        to: payload.to,
+        amount: payload.amount,
+        wallet: address,
+        remainingWei: limits.remainingWei,
+        context: { source: 'clipboard', appLabel: EXTERNAL_AGENT, text: payload.context },
+        userTexts: [],
+        parsedBy: 'agent',
+        origin: 'mcp',
+      } : {
+        id: randomUUID(),
+        to: recipient,
+        amount,
+        wallet: address,
+        remainingWei: limits.remainingWei,
+        context: null,
+        userTexts: [`Send ${amount} ${NETWORK.symbol} to ${recipient}`],
+        parsedBy: 'manual',
+        origin: 'phone',
+      });
+      if (generation.current !== call || scopeRef.current !== scope) return;
+      const turn: Turn = isTransferError(result)
+        ? { id: randomUUID(), kind: 'notice', text: result.message, tone: 'danger', icon: 'alert-circle' }
+        : {
+            id: randomUUID(), kind: 'assistant',
+            text: external ? 'An outside agent asked for this payment. Check every detail.' : 'Review the payment details you entered.',
+            intents: [result], authorizations: { [result.id]: authorizePayment(scope, result) },
+            clarification: null, assessment: null,
+          };
+      setTurns((previous) => [...previous, turn]);
+    } catch {
+      if (generation.current === call) {
+        setTurns((previous) => [...previous, { id: randomUUID(), kind: 'notice', text: 'Could not prepare this payment. Check the details and try again.', tone: 'danger', icon: 'alert-circle' }]);
+      }
+    } finally {
+      if (generation.current === call) setBusy(false);
+    }
+  };
+
+  const send = async (raw: string, action: 'inspect' | 'pay' = 'inspect') => {
     const text = raw.trim();
-    if (!text || busy || !address) return;
+    if (!text || busy || !address || (action === 'pay' && (injection.suspected || review !== undefined))) return;
+    const call = invalidate();
+    const scope = action === 'pay' ? createPaymentScope(address) : null;
+    scopeRef.current = scope;
     void Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
     setInput('');
-    const history: Turn[] = [...turns, { id: randomUUID(), kind: 'user', text }];
+    const history: Turn[] = [...withoutPayments(turns), { id: randomUUID(), kind: 'user', text }];
     setTurns(history);
     setBusy(true);
     const controller = new AbortController();
     abortRef.current = controller;
     try {
+      const limits = await getLimitState();
+      if (generation.current !== call || controller.signal.aborted) return;
       const outcome = await planTurn({
+        action,
         history: toChat(history),
         context: context.kind === 'captured' && !excluded ? toAgentContext(context.ctx) : null,
         wallet: address,
-        limits: await getLimitState(),
+        limits,
         signal: controller.signal,
       });
+      if (generation.current !== call || controller.signal.aborted) return;
+      // Only this local explicit action can authorize cards, even if a server
+      // response to an inspection unexpectedly includes payment proposals.
+      const intents = scope ? outcome.intents : [];
+      const authorizations = scope ? Object.fromEntries(intents.map((intent) => [intent.id, authorizePayment(scope, intent)])) : {};
       const added: Turn[] = [];
       if (outcome.notice) {
         const { kind, text, tone } = outcome.notice;
         added.push({ id: randomUUID(), kind: 'notice', text, tone, icon: NOTICE_ICON[kind] });
       }
       const reply = [...new Set([outcome.reply, outcome.clarification?.question ?? ''])].filter(Boolean).join('\n\n');
-      if (reply || outcome.intents.length || outcome.assessment) {
+      if (reply || intents.length || outcome.assessment) {
         added.push({
-          id: randomUUID(),
-          kind: 'assistant',
-          text: reply,
-          intents: outcome.intents,
-          clarification: outcome.clarification,
-          assessment: outcome.assessment,
+          id: randomUUID(), kind: 'assistant', text: reply, intents, authorizations,
+          clarification: outcome.clarification, assessment: outcome.assessment,
         });
-        const spoken = speakFor(outcome.intents[0] ?? null, outcome.assessment, reply);
-        if (spoken) void getReadAloud().then((on) => on && speak(spoken));
+        const spoken = speakFor(intents[0] ?? null, outcome.assessment, reply);
+        if (spoken) void getReadAloud().then((on) => {
+          if (on && generation.current === call) speak(spoken);
+        });
       }
-      setTurns((t) => [...t, ...added]);
+      setTurns((previous) => [...previous, ...added]);
     } catch {
-      if (!controller.signal.aborted) {
-        setTurns((t) => [
-          ...t,
-          { id: randomUUID(), kind: 'notice', text: 'Something went wrong. Try again.', tone: 'danger', icon: 'alert-circle' },
-        ]);
+      if (generation.current === call && !controller.signal.aborted) {
+        setTurns((previous) => [...previous, { id: randomUUID(), kind: 'notice', text: 'Something went wrong. Try again.', tone: 'danger', icon: 'alert-circle' }]);
       }
     } finally {
-      if (abortRef.current === controller) abortRef.current = null;
-      setBusy(false);
+      if (generation.current === call) {
+        if (abortRef.current === controller) abortRef.current = null;
+        setBusy(false);
+      }
     }
   };
 
@@ -419,10 +515,47 @@ export function AskSheet({ ctxId, review, page = false }: { ctxId: string | unde
             <ContextChip
               state={context}
               excluded={excluded}
-              onExcludedChange={setExcluded}
+              onExcludedChange={changeExcluded}
               onUseClipboard={() => void readClipboard()}
               clipboardError={clipboardError}
             />
+          )}
+          {injection.suspected ? <InjectionWarning signals={injection.signals} /> : null}
+          {review !== undefined ? (
+            payload ? (
+              <View style={styles.paymentActions}>
+                <Text variant="callout" color="textSecondary">
+                  An outside agent requested a payment. Review it here before any payment details are prepared.
+                </Text>
+                <Button label="Review external payment" icon="shield" disabled={busy || injection.suspected} onPress={() => void prepareDirect(true)} />
+              </View>
+            ) : (
+              <NoticeRow text="This payment link is invalid." tone="danger" icon="alert-octagon" />
+            )
+          ) : (
+            <View style={styles.paymentActions}>
+              <Text variant="caption" color="textSecondary">Messages inspect by default. Use Pay this or Prepare payment to review a payment before sending.</Text>
+              <Button
+                variant="secondary"
+                label={context.kind === 'captured' && !excluded ? 'Pay this' : 'Prepare payment'}
+                icon="send"
+                disabled={busy || injection.suspected || manualOpen}
+                onPress={() => void send(input.trim() ? `Pay this. ${input.trim()}` : 'Pay this', 'pay')}
+              />
+            </View>
+          )}
+          {manualOpen ? (
+            <ManualPaymentForm
+              recipient={manualRecipient}
+              amount={manualAmount}
+              busy={busy}
+              onRecipientChange={(value) => { invalidate(); setManualRecipient(value); }}
+              onAmountChange={(value) => { invalidate(); setManualAmount(value); }}
+              onPrepare={() => void prepareDirect(false)}
+              onClose={() => { invalidate(); setManualOpen(false); }}
+            />
+          ) : (
+            <Button variant="ghost" label="Enter payment manually" icon="edit" onPress={openManual} />
           )}
           {empty && !page ? chips : null}
           {empty && page ? (
@@ -450,6 +583,7 @@ export function AskSheet({ ctxId, review, page = false }: { ctxId: string | unde
                   <IntentCard
                     key={`${turn.id}:${intent.id}`}
                     intent={intent}
+                    authorization={turn.authorizations[intent.id]}
                     wallet={wallet}
                     address={address}
                     onSettled={() => void pending.recheck()}
@@ -491,8 +625,8 @@ export function AskSheet({ ctxId, review, page = false }: { ctxId: string | unde
           <TextInput
             ref={inputRef}
             value={input}
-            onChangeText={setInput}
-            placeholder={page ? 'Ask Beam' : 'Ask or say “pay this”'}
+            onChangeText={(value) => { invalidate(); setInput(value); }}
+            placeholder={page ? 'Ask Beam to inspect' : 'Ask about this screen'}
             placeholderTextColor={colors.textTertiary}
             maxLength={MAX_INPUT_CHARS}
             returnKeyType="send"
@@ -539,7 +673,7 @@ export function AskSheet({ ctxId, review, page = false }: { ctxId: string | unde
           <Pressable
             accessibilityRole="button"
             accessibilityLabel="Back to wallet"
-            onPress={() => router.navigate('/')}
+            onPress={() => { invalidate(); router.navigate('/'); }}
             style={({ pressed }) => [styles.headerButton, pressed && styles.closePressed]}
           >
             <Icon name="chevron-left" size={24} color={colors.text} />
@@ -555,11 +689,15 @@ export function AskSheet({ ctxId, review, page = false }: { ctxId: string | unde
             accessibilityLabel="New chat"
             disabled={busy || turns.length === 0}
             onPress={() => {
-              abortRef.current?.abort();
+              invalidate();
               stopSpeaking();
               setTurns([]);
               setInput('');
               setContext({ kind: 'unavailable', accessibilityOn: true });
+              setExcluded(false);
+              setManualOpen(false);
+              setManualRecipient('');
+              setManualAmount('');
             }}
             style={({ pressed }) => [styles.headerButton, pressed && styles.closePressed, turns.length === 0 && styles.headerButtonIdle]}
           >
@@ -614,6 +752,7 @@ export function AskSheet({ ctxId, review, page = false }: { ctxId: string | unde
 }
 
 const styles = StyleSheet.create({
+  paymentActions: { gap: space.sm },
   root: { flex: 1 },
   scrim: { backgroundColor: colors.scrim },
   page: { flex: 1, backgroundColor: colors.canvas },

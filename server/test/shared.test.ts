@@ -1,7 +1,7 @@
 /**
  * @file Guards the shared-file contract (server copies equal the app copies byte
- * for byte) and unit-tests the six shared modules: network, intent,
- * fallbackParser, beamPay, ens and api.
+ * for byte) and unit-tests the shared network, intent, fallbackParser,
+ * beamPay, ens and api modules. Risk and injection also have shared copies.
  */
 import { readFileSync } from 'node:fs';
 import { parseEther, type Address } from 'viem';
@@ -15,7 +15,7 @@ import { APPROVAL_TYPES, beamPayDomain, BEAM_PAY_ABI, toSourceApp } from '../src
 import { ARC, mockEns, NAMED, BEAM_PAY, RECIPIENT } from './helpers';
 
 const read = (rel: string) => readFileSync(new URL(rel, import.meta.url));
-const SHARED = ['network.ts', 'intent.ts', 'fallbackParser.ts', 'beamPay.ts', 'ens.ts', 'api.ts', 'risk.ts'];
+const SHARED = ['network.ts', 'intent.ts', 'fallbackParser.ts', 'beamPay.ts', 'ens.ts', 'api.ts', 'risk.ts', 'injection.ts'];
 
 describe('shared files', () => {
   it.each(SHARED)('server/src/%s equals app/src/%s', (name) => {

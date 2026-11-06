@@ -10,9 +10,12 @@ import type { Intent, IntentOrigin, ScreenContextInput, TransferErrorCode } from
 import type { Network } from '../network';
 import type { Assessment } from '../risk';
 import type { Clarification } from '../schemas';
+import { scanInjection } from '../injection';
 
 /** Per-request state the tools read and write. The model can only reach it through tool inputs. */
 export type ToolCtx = {
+  /** Current app-selected capability; prior messages cannot authorize another payment. */
+  action: 'inspect' | 'pay';
   chain: ChainClient;
   /** ENS client (mainnet or Sepolia); null when ENS lookups are disabled. */
   ens: EnsReader | null;
@@ -37,7 +40,7 @@ export type ToolCtx = {
 };
 
 /** Error codes a tool can return: transfer validation codes plus dispatcher codes. */
-type ToolErrorCode = TransferErrorCode | 'BAD_TOOL_INPUT' | 'TOO_MANY_INTENTS';
+type ToolErrorCode = TransferErrorCode | 'BAD_TOOL_INPUT' | 'TOO_MANY_INTENTS' | 'PAYMENT_NOT_AUTHORIZED' | 'PROMPT_INJECTION_BLOCKED';
 /** JSON object returned to the model. Errors carry `{ error, message }`. */
 export type ToolOutput = Record<string, unknown>;
 
@@ -64,6 +67,15 @@ export const defineTool = <S extends z.ZodObject>(tool: Tool<S>): Tool<S> => too
  * @returns `{ error, message }`.
  */
 export const toolError = (error: ToolErrorCode, message: string): ToolOutput => ({ error, message });
+
+export const INJECTION_BLOCKED_MESSAGE = 'The captured text contains instructions aimed at the assistant. Payments from this capture are blocked.';
+
+/** A deterministic gate, also used by direct tool and MCP callers. */
+export function paymentBlock(ctx: ToolCtx): ToolOutput | null {
+  if (ctx.action !== 'pay') return toolError('PAYMENT_NOT_AUTHORIZED', 'This turn is for inspection. Choose Pay to prepare a payment.');
+  if (scanInjection(ctx.context?.text ?? '').suspected) return toolError('PROMPT_INJECTION_BLOCKED', INJECTION_BLOCKED_MESSAGE);
+  return null;
+}
 
 /**
  * Whether a tool output is an error.

@@ -101,6 +101,7 @@ export const SCREEN_TEXT = `dinner was 12 USDC, send to ${RECIPIENT}`;
  */
 export function makeCtx(over: Partial<ToolCtx> = {}): ToolCtx {
   return {
+    action: 'pay',
     chain: mockChain(),
     ens: mockEns(),
     network: ARC,
@@ -125,6 +126,7 @@ export function makeCtx(over: Partial<ToolCtx> = {}): ToolCtx {
 export function makeRequest(over: Partial<AgentRequest> = {}): AgentRequest {
   return {
     requestId: 't1',
+    action: 'pay',
     messages: [{ role: 'user', text: 'pay this' }],
     context: { source: 'screen', appLabel: 'WhatsApp', text: SCREEN_TEXT, capturedAt: 0 },
     wallet: { address: WALLET, chainId: ARC.chainId },

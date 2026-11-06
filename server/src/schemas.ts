@@ -44,6 +44,8 @@ export const amountString = (network: Network) =>
 export function agentRequestSchema(network: Network) {
   return z.object({
     requestId: z.string().min(1).max(100),
+    // Capability for this turn, selected by the app; never inferred from screen text or history.
+    action: z.enum(['inspect', 'pay']).default('inspect'),
     messages: z
       .array(z.object({ role: z.enum(['user', 'assistant']), text: z.string().min(1).max(MAX_MESSAGE_CHARS) }))
       .min(1)
@@ -105,7 +107,7 @@ function intentSchema(network: Network): z.ZodType<Intent> {
     ),
     createdAt: z.number(),
     expiresAt: z.number(),
-    parsedBy: z.enum(['agent', 'fallback']),
+    parsedBy: z.enum(['agent', 'fallback', 'manual']),
     origin: z.enum(['phone', 'mcp']),
   });
 }

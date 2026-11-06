@@ -47,6 +47,7 @@ function setup(over: Partial<AppDeps> = {}) {
 
 const body = (over: Record<string, unknown> = {}) => ({
   requestId: 't1',
+  action: 'pay',
   messages: [{ role: 'user', text: 'pay this' }],
   context: { source: 'screen', appLabel: 'WhatsApp', text: SCREEN_TEXT, capturedAt: 0 },
   wallet: { address: WALLET.toLowerCase(), chainId: ARC.chainId },
@@ -112,8 +113,23 @@ describe('server', () => {
     expect((await post(setup().app, big)).status).toBe(413);
   });
 
+  it('missing action defaults to inspect and does not prepare a payment from old clients', async () => {
+    const res = await post(setup().app, body({ action: undefined }));
+    expect(res.status).toBe(200);
+    expect(agentResponseSchema(ARC).parse(await res.json()).intents).toEqual([]);
+  });
+
+  it('explicit inspect blocks fallback despite pay wording; explicit pay keeps legitimate payments working', async () => {
+    const app = setup().app;
+    const inspect = await post(app, body({ action: 'inspect' }));
+    expect(agentResponseSchema(ARC).parse(await inspect.json()).intents).toEqual([]);
+    const pay = await post(app, body({ action: 'pay' }));
+    expect(agentResponseSchema(ARC).parse(await pay.json()).intents).toHaveLength(1);
+  });
+
   it.each([
     ['malformed JSON', '{nope'],
+    ['invalid action', body({ action: 'send_now' })],
     ['wrong chain', body({ wallet: { address: WALLET, chainId: 1 } })],
     ['bad wallet', body({ wallet: { address: '0x123', chainId: ARC.chainId } })],
     ['11 messages', body({ messages: Array.from({ length: 11 }, () => ({ role: 'user', text: 'hi' })) })],

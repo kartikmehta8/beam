@@ -9,9 +9,10 @@ import { askUser } from './askUser';
 import { assessScreen } from './assessScreen';
 import { getTxStatus } from './getTxStatus';
 import { getWalletBalance } from './getWalletBalance';
+import { getScreenContext } from './getScreenContext';
 import { inspectRecipient } from './inspectRecipient';
 import { preparePayment } from './preparePayment';
-import { toolError, type Tool, type ToolCtx, type ToolOutput } from './tool';
+import { paymentBlock, toolError, type Tool, type ToolCtx, type ToolOutput } from './tool';
 
 type Caller = (ctx: ToolCtx, raw: unknown) => Promise<ToolOutput>;
 
@@ -49,7 +50,7 @@ function toDef<S extends z.ZodObject>(tool: Tool<S>, network: Network): Anthropi
   };
 }
 
-const TOOLS = [getWalletBalance, inspectRecipient, preparePayment, getTxStatus, askUser, assessScreen] as const;
+const TOOLS = [getWalletBalance, inspectRecipient, preparePayment, getTxStatus, askUser, assessScreen, getScreenContext] as const;
 const CALLERS = new Map<string, Caller>(TOOLS.map((t) => [t.name, safeCaller(t as Tool<z.ZodObject>)]));
 
 /**
@@ -57,8 +58,8 @@ const CALLERS = new Map<string, Caller>(TOOLS.map((t) => [t.name, safeCaller(t a
  * @param network The server's network.
  * @returns One definition per tool.
  */
-export function toolDefs(network: Network): Anthropic.Tool[] {
-  return TOOLS.map((t) => toDef(t as Tool<z.ZodObject>, network));
+export function toolDefs(network: Network, allowPayments = false): Anthropic.Tool[] {
+  return TOOLS.filter((t) => allowPayments || t.name !== 'prepare_payment').map((t) => toDef(t as Tool<z.ZodObject>, network));
 }
 
 /**
@@ -69,6 +70,10 @@ export function toolDefs(network: Network): Anthropic.Tool[] {
  * @returns Tool output; unknown tools and invalid input give `BAD_TOOL_INPUT`.
  */
 export async function runTool(name: string, input: unknown, ctx: ToolCtx): Promise<ToolOutput> {
+  if (name === 'prepare_payment') {
+    const blocked = paymentBlock(ctx);
+    if (blocked) return blocked;
+  }
   const call = CALLERS.get(name);
   return call ? call(ctx, input) : toolError('BAD_TOOL_INPUT', `Unknown tool "${name.slice(0, 40)}".`);
 }

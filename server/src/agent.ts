@@ -11,13 +11,14 @@ import type { Address } from 'viem';
 import type { ChainClient } from './chain';
 import type { EnsReader } from './ens';
 import { parseFallback } from './fallbackParser';
+import { scanInjection } from './injection';
 import { isTransferError, prepareTransfer, shortAddress, type Intent } from './intent';
 import type { Network } from './network';
 import { buildMessages, buildSystemPrompt } from './prompt';
 import { screenAssessment } from './risk';
 import type { AgentRequest, AgentResponse, Clarification } from './schemas';
 import { runTool, toolDefs } from './tools/index';
-import { errorCode, resolverFor, type ToolCtx } from './tools/tool';
+import { errorCode, INJECTION_BLOCKED_MESSAGE, paymentBlock, resolverFor, type ToolCtx } from './tools/tool';
 
 const MAX_ITERATIONS = 4;
 const CALL_TIMEOUT_MS = 15_000;
@@ -83,6 +84,7 @@ export function clampReply(text: string): string {
 export async function runAgent(req: AgentRequest, deps: AgentDeps): Promise<AgentOutcome> {
   const started = Date.now();
   const ctx: ToolCtx = {
+    action: req.action,
     chain: deps.chain,
     ens: deps.ens,
     network: deps.network,
@@ -99,7 +101,12 @@ export async function runAgent(req: AgentRequest, deps: AgentDeps): Promise<Agen
   const toolCalls: string[] = [];
   const errorCodes: string[] = [];
 
-  const answer = await answerWithModel(req, deps, ctx, toolCalls, errorCodes).catch(async (e: unknown) => {
+  // Scan before any model call. A suspicious capture never enters the model or fallback payment paths.
+  const suspicious = scanInjection(req.context?.text ?? '').suspected;
+  if (suspicious) errorCodes.push('PROMPT_INJECTION_BLOCKED');
+  const answer: Answer = suspicious
+    ? { reply: INJECTION_BLOCKED_MESSAGE, intents: [], clarification: null, fallback: false }
+    : await answerWithModel(req, deps, ctx, toolCalls, errorCodes).catch(async (e: unknown) => {
     errorCodes.push(llmErrorCode(e));
     // Snapshot first: a loop abandoned at the deadline may still be running in the background.
     const intents = [...ctx.intents];
@@ -107,7 +114,8 @@ export async function runAgent(req: AgentRequest, deps: AgentDeps): Promise<Agen
     return runFallback(req, ctx, errorCodes);
   });
 
-  const assessment = screenAssessment({
+  // Injection and financial scam signals are separate. Never label a blocked capture "safe".
+  const assessment = suspicious ? null : screenAssessment({
     contextText: ctx.context?.text ?? null,
     lastUserText: ctx.userTexts[ctx.userTexts.length - 1] ?? '',
     reported: ctx.assessment,
@@ -166,8 +174,8 @@ async function toolLoop(
   signal: AbortSignal,
 ): Promise<string> {
   const messages = buildMessages(req);
-  const system = buildSystemPrompt(ctx.network);
-  const tools = toolDefs(ctx.network);
+  const system = buildSystemPrompt(ctx.network, ctx.action);
+  const tools = toolDefs(ctx.network, paymentBlock(ctx) === null);
   let lastText = '';
   for (let i = 0; i < MAX_ITERATIONS; i++) {
     const res = await createMessage(
@@ -205,6 +213,14 @@ async function toolLoop(
 
 /** No-AI path: regex parse, then the same validation as `prepare_payment`. */
 async function runFallback(req: AgentRequest, ctx: ToolCtx, errorCodes: string[]): Promise<Answer> {
+  const blocked = paymentBlock(ctx);
+  if (blocked) {
+    errorCodes.push(errorCode(blocked)!);
+    return {
+      reply: ctx.action === 'inspect' ? 'The agent is unavailable. No payment was prepared. Choose Pay when you want to make a payment.' : String(blocked.message),
+      intents: [], clarification: null, fallback: true,
+    };
+  }
   const parsed = parseFallback({ contextText: req.context?.text ?? null, userTexts: ctx.userTexts, network: ctx.network });
   if (parsed.kind === 'clarify') {
     const clarification = { question: parsed.question, options: parsed.options };

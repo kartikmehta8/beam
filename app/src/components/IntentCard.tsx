@@ -15,6 +15,7 @@ import type { Address } from 'viem';
 import type { ApprovalRequest } from '../api';
 import { NETWORK } from '../config';
 import { useIntentExecution } from '../execute';
+import type { PaymentAuthorization } from '../paymentAuthorization';
 import { shortAddress, type ApprovalReason, type Intent, type IntentWarning } from '../intent';
 import { colors, radius, space } from '../theme';
 import { intentCost } from '../validateIntent';
@@ -59,6 +60,7 @@ function reasonCopy(reason: ApprovalReason, capWei: bigint | null): string {
 
 type Props = {
   intent: Intent;
+  authorization: PaymentAuthorization;
   wallet: ConnectedEthereumWallet | null;
   address: Address | null;
   /** Called when the payment confirms or reverts. */
@@ -68,13 +70,14 @@ type Props = {
 /**
  * Review card for one intent.
  * @param props.intent Locally prepared intent.
+ * @param props.authorization Device-only permission from the current payment scope.
  * @param props.wallet Privy embedded wallet (null while being created).
  * @param props.address Wallet address.
  * @param props.onSettled Refresh hook after the payment settles.
  * @returns The card, or a one-line note once the user cancels it.
  */
-export function IntentCard({ intent, wallet, address, onSettled }: Props) {
-  const exec = useIntentExecution(intent, wallet, address, onSettled);
+export function IntentCard({ intent, authorization, wallet, address, onSettled }: Props) {
+  const exec = useIntentExecution(intent, authorization, wallet, address, onSettled);
   const [declined, setDeclined] = useState(false);
   const [approving, setApproving] = useState(false);
   const { state, check, balanceWei, capWei, walletStatus, authMode, approval } = exec;

@@ -66,17 +66,25 @@ against the shared limit. Errors are `{ error, message }`.
 
 ### `POST /v1/agent`
 
-Request: `{ requestId, messages (1 to 10, last from the user), context | null, wallet: { address, chainId }, limits: { dailyRemaining } }`.
+Request: `{ requestId, action?: "inspect" | "pay", messages (1 to 10, last from the user), context | null, wallet: { address, chainId }, limits: { dailyRemaining } }`.
 `wallet.chainId` must equal the server's chain; `dailyRemaining` is a decimal string in the network's token.
+`action` defaults to `"inspect"`. Clients must select `"pay"` through an explicit user payment action for the
+current turn; prior messages and screen text cannot grant this permission. Inspection omits the payment tool
+and rejects forced payment-tool calls. The phone also enforces local authorization independently of this field.
 
-Response: `{ requestId, reply, intents, clarification, meta: { model, toolCalls, ms, fallback } }`. Each intent
+Response: `{ requestId, reply, intents, clarification, assessment, meta: { model, toolCalls, ms, fallback } }`. Each intent
 carries `route` (`pay` or `payWithApproval`), `approvalReasons` (`OVER_CAP` from `BeamPay.capFor`, and
 `EXTERNAL_AGENT` for MCP), `intentHash`, `to` (always an address) and `toName` when paid by ENS name.
 
-Model failure, no API key, or the 25 s deadline fall back to the regex parser (`meta.fallback: true`, still 200).
+Model failure, no API key, or the 25 s deadline fall back to the regex parser only for payment-authorized turns
+(`meta.fallback: true`, still 200). Inspection returns no payment. A capture with detected injection indicators
+returns fixed blocking copy and no intents before any model call; it cannot use payment fallback.
 
 Agent tools: `get_wallet_balance` (balance and per-payment cap), `inspect_recipient` (address or ENS name),
-`prepare_payment` (the only way an intent is created, wraps the shared `prepareTransfer`), `get_tx_status`, `ask_user`.
+`prepare_payment` (payment-authorized turns only; wraps the shared `prepareTransfer`), `get_tx_status`, `ask_user`,
+`assess_screen` and the read-only `get_screen_context`. Captured content enters the model as a tool result,
+not as part of a user message. See [prompt-injection protection](../docs/prompt-injection-protection.md) for
+the complete boundary, phone authorization and detector limitations.
 
 ### World ID approvals (`/v1/approvals`)
 
@@ -225,7 +233,8 @@ Expected: one intent with `route: "pay"` and `provenance.source: "screen"`; then
 Tools: `get_wallet_balance`, `inspect_recipient`, `get_tx_status`, and `prepare_payment` with an extra `context`
 string (the text the payment is based on, at most 2000 characters, used for the provenance check). Every MCP
 intent has `origin: "mcp"`, so `EXTERNAL_AGENT` always routes it through World ID approval. It returns the intent
-JSON plus `reviewLink` (`bubbleagent://review?p=...`); the phone re-validates it from scratch. It never signs.
+JSON plus `reviewLink` (`bubbleagent://review?p=...`); the phone requires an explicit external review action and
+re-validates it from scratch. Detected instruction-bearing context is rejected. It never signs or sends.
 
 ## Security and privacy
 
@@ -237,7 +246,9 @@ JSON plus `reviewLink` (`bubbleagent://review?p=...`); the phone re-validates it
 - World ID: the server never trusts the client about verification; it fetches the proof from the bridge itself,
   checks it is bound to the approval and verifies it with World. Onchain it stores only a salted hash of the
   app-scoped `session_id`; the session map file holds session ids and enrollment nullifiers, never logged.
-- Screen text is wrapped in `<screen>` with markup escaped and treated as untrusted.
+- Screen text is confined to a read-only tool result and treated as untrusted. Current-turn capability gates
+  payment preparation; a shared heuristic detector blocks known instruction patterns. Detection is incomplete,
+  so the phone also requires an opaque local authorization and explicit review before execution.
 - Logs are one JSON line per request: ids, latency, tool names, counts, routes, error codes, context length,
   approval kinds and outcomes, and addresses as first/last 4 characters only. No screen text, names, signals,
   session ids, nullifiers or keys.

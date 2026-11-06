@@ -30,6 +30,7 @@ import {
   type BeamPayTx,
 } from './beamPayClient';
 import { finalizePending, loadPending, savePending, settlePending, type PendingTx } from './pendingTx';
+import { paymentAuthorizationError, type PaymentAuthorization } from './paymentAuthorization';
 import { BEAMPAY_MISSING } from './prepare';
 import { loadServerStatus, worldOf } from './serverApi';
 import { isExecuted, markExecuted } from './storage';
@@ -81,6 +82,7 @@ const WRONG_CHAIN: IntentCheck = { ok: false, reason: `Couldn't switch your wall
 /**
  * Drives one intent card from local checks to a terminal state.
  * @param intent The locally prepared intent.
+ * @param authorization Device-only permission from the active payment scope.
  * @param wallet Privy embedded wallet, or null while it is being created.
  * @param address Checksummed wallet address, or null.
  * @param onSettled Called once the payment confirms or reverts (refresh balances).
@@ -88,6 +90,7 @@ const WRONG_CHAIN: IntentCheck = { ok: false, reason: `Couldn't switch your wall
  */
 export function useIntentExecution(
   intent: Intent,
+  authorization: PaymentAuthorization,
   wallet: ConnectedEthereumWallet | null,
   address: Address | null,
   onSettled?: () => void,
@@ -107,6 +110,27 @@ export function useIntentExecution(
   walletRef.current = wallet;
   const settledRef = useRef(onSettled);
   settledRef.current = onSettled;
+  const activeRef = useRef(true);
+  const currentRef = useRef({ intent, authorization, address });
+  currentRef.current = { intent, authorization, address };
+
+  useEffect(() => {
+    activeRef.current = true;
+    return () => { activeRef.current = false; };
+  }, []);
+
+  // Async confirmation keeps old closures alive. Also compare against the
+  // latest render so a changed wallet, intent or permission cannot use them.
+  const authorizationCheck = useCallback((): IntentCheck | null => {
+    const current = currentRef.current;
+    if (!activeRef.current || current.authorization !== authorization || current.address !== address) {
+      return { ok: false, reason: 'This payment context changed. Start a new payment.' };
+    }
+    if (!address) return { ok: false, reason: 'Sign in to Beam first.' };
+    const reason = paymentAuthorizationError(authorization, intent, address)
+      ?? paymentAuthorizationError(authorization, current.intent, address);
+    return reason ? { ok: false, reason } : null;
+  }, [authorization, intent, address]);
 
   useEffect(() => {
     void getAuthMode().then(setAuthMode);
@@ -142,6 +166,8 @@ export function useIntentExecution(
   }, []);
 
   const runCheck = useCallback(async (): Promise<IntentCheck> => {
+    const unauthorized = authorizationCheck();
+    if (unauthorized) return unauthorized;
     if (!address) return { ok: false, reason: 'Sign in to Beam first.' };
     const { beamPay } = config;
     if (!beamPay) return { ok: false, reason: BEAMPAY_MISSING };
@@ -155,6 +181,8 @@ export function useIntentExecution(
         isExecuted(intent.id),
         loadPending(),
       ]);
+      const stale = authorizationCheck();
+      if (stale) return stale;
       setBalanceWei(balance);
       setCapWei(account.cap);
       const result = validateIntent(intent, {
@@ -174,7 +202,7 @@ export function useIntentExecution(
     } catch {
       return RPC_UNREACHABLE;
     }
-  }, [address, intent, approval, dropApproval]);
+  }, [address, intent, approval, dropApproval, authorizationCheck]);
 
   const recheck = useCallback(async () => setCheck(await runCheck()), [runCheck]);
 
@@ -195,6 +223,11 @@ export function useIntentExecution(
     const { beamPay } = config;
     if (busy.current || !provider || !address || !authMode || !beamPay) return;
     if (intent.route === 'payWithApproval' && !approval) return;
+    const unauthorized = authorizationCheck();
+    if (unauthorized) {
+      setCheck(unauthorized);
+      return;
+    }
     busy.current = true;
     try {
       if (authMode === 'biometric') {
@@ -233,10 +266,24 @@ export function useIntentExecution(
         return;
       }
 
+      const staleAfterSimulation = authorizationCheck();
+      if (staleAfterSimulation) {
+        setCheck(staleAfterSimulation);
+        setState({ status: 'idle' });
+        return;
+      }
       await markExecuted(intent.id);
       const sentAt = Date.now();
       let hash: Hash;
       try {
+        // Storage is async too. Check again immediately before sending, with
+        // no intervening await where the UI could replace or revoke the scope.
+        const staleBeforeSend = authorizationCheck();
+        if (staleBeforeSend) {
+          setCheck(staleBeforeSend);
+          setState({ status: 'idle' });
+          return;
+        }
         hash = await sendBeamPay(client, tx, BigInt(intent.gasLimit), BigInt(intent.maxFeePerGasWei));
       } catch (e) {
         setState({ status: 'failed', reason: shortError(e), hash: null });
@@ -277,7 +324,7 @@ export function useIntentExecution(
     } finally {
       busy.current = false;
     }
-  }, [provider, address, authMode, intent, approval, runCheck, dropApproval]);
+  }, [provider, address, authMode, intent, approval, runCheck, dropApproval, authorizationCheck]);
 
   const checkAgain = useCallback(async () => {
     const tx = txRef.current;

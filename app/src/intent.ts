@@ -71,7 +71,7 @@ export type Intent = {
   warnings: IntentWarning[];
   createdAt: number;
   expiresAt: number;
-  parsedBy: 'agent' | 'fallback';
+  parsedBy: 'agent' | 'fallback' | 'manual';
   origin: IntentOrigin;
 };
 
@@ -86,7 +86,8 @@ export type TransferErrorCode =
   | 'OVER_DAILY_LIMIT'
   | 'INSUFFICIENT_BALANCE'
   | 'RECIPIENT_REJECTS'
-  | 'RPC_ERROR';
+  | 'RPC_ERROR'
+  | 'PROMPT_INJECTION_BLOCKED';
 
 /** Error shape returned to the model and shown to the user (`message` is UX copy). */
 export type TransferError = { error: TransferErrorCode; message: string };
