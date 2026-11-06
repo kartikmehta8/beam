@@ -1,8 +1,37 @@
+![Beam — pay anyone you see on your screen](ethglobal/images/banner.png)
+
 # Beam
 
 **Pay anyone you see on your screen.** Beam is an Android wallet with a floating beam that sits over every app. Tap it in WhatsApp, X or Telegram, say "pay this", review, confirm with your fingerprint, and USDC settles on Arc in about a second. You never leave the app you were in.
 
 **Arc settles the money, ENS says who it goes to, and World ID proves a real human approved it.**
+
+🌐 **[beam.mrmehta.in](https://beam.mrmehta.in)** · 💻 **[github.com/kartikmehta8/beam](https://github.com/kartikmehta8/beam)** · 🎬 [Demo video](ethglobal/video/beam-demo.mp4)
+
+---
+
+## Try it in 3 steps
+
+1. **Install** the APK from [beam.mrmehta.in/download](https://beam.mrmehta.in/download).
+2. **Sign in**, then **Wallet → Faucet** for test USDC on Arc.
+3. In any app, show `send $12 to vitalik.eth`, tap the beam, **Pay this**, confirm with your fingerprint.
+
+> Full walkthrough (World ID, caps, agents) is in [Try it](#try-it) below.
+
+---
+
+## Deployed contracts
+
+| Contract | Network | Address |
+|---|---|---|
+| **BeamPay** (payments, receipts, onchain cap, World-approved sends) | Arc Testnet (chain `5042002`) | [`0xacf090CD5d5a6636B7b757A6d324c12B6721Fa1c`](https://explorer.testnet.arc.io/address/0xacf090CD5d5a6636B7b757A6d324c12B6721Fa1c) |
+| **Beam handle registry** (ENSv2, parent `beamfi.eth`) | Sepolia | [`0x16aD5F85960E389e754BA84406974f437913217a`](https://sepolia.etherscan.io/address/0x16aD5F85960E389e754BA84406974f437913217a) |
+
+Payments are in USDC, the native gas token on Arc. Explorer: [explorer.testnet.arc.io](https://explorer.testnet.arc.io) · RPC: `https://rpc.testnet.arc.io`
+
+---
+
+## How it works
 
 ```
 ┌──────────────────────────────── Android phone ────────────────────────────────┐
@@ -49,7 +78,7 @@
 ## Run
 
 ```bash
-# 1. Contracts: deploy BeamPay to Arc testnet (once)
+# 1. Contracts: deploy BeamPay to Arc testnet (once; already live at the address above)
 cd contracts                       # see contracts/README.md for dependency setup
 #   fund the deployer address with test USDC at https://faucet.circle.com (choose Arc Testnet)
 source .env && forge script script/DeployBeamPay.s.sol --rpc-url https://rpc.testnet.arc.io --broadcast --private-key $DEPLOYER_PRIVATE_KEY
@@ -65,7 +94,7 @@ ngrok http --url=<your-domain>.ngrok-free.dev 8787
 cd app && pnpm install && pnpm android
 ```
 
-`WORLD_MODE=staging` (dev only) sends World ID approvals to the World ID simulator (https://simulator.worldcoin.org), so every path can be tried without an Beam-verified World App; `production` uses the real World App. The server refuses staging in production. See the World ID section of the server README. ENS handles stay off until the ENS variables are set (see the handles README).
+`WORLD_MODE=staging` (dev only) sends World ID approvals to the World ID simulator (https://simulator.worldcoin.org), so every path can be tried without a Beam-verified World App; `production` uses the real World App. The server refuses staging in production. See the World ID section of the server README. ENS handles stay off until the ENS variables are set (see the handles README).
 
 ## Try it
 
@@ -75,7 +104,7 @@ cd app && pnpm install && pnpm android
 4. In any app, show `dinner was $12, send to 0x<address>` or `send $12 to vitalik.eth`, then tap the beam and **Pay this**. The card shows the ENS name, avatar and primary-name badge. Confirm with your fingerprint.
 5. Over the $25 cap, or the first payment of $10 or more to someone new: **Approve with World ID**, then Confirm. Decline in World App instead and nothing is sent. A different human than the linked one is rejected.
 6. **Profile → Limits**: lower the per-payment cap instantly, or raise it with World ID.
-7. External agent: call the MCP `prepare_payment` tool from Claude Desktop and open the returned `reviewLink` on the phone. It always needs World ID.
+7. External agent: connect Claude Code or Codex to the hosted Beam MCP, call `prepare_payment`, and open the returned `reviewLink` on the phone. It always needs World ID.
 
 ## Permissions
 

@@ -1,0 +1,85 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <style>
+      @font-face { font-family: "Inter"; font-weight: 400; src: url("file:///Users/kartikmehta/Desktop/beam/website/public/assets/inter-regular.woff2") format("woff2"); }
+      @font-face { font-family: "Inter"; font-weight: 500; src: url("file:///Users/kartikmehta/Desktop/beam/website/public/assets/inter-medium.woff2") format("woff2"); }
+      @font-face { font-family: "Inter"; font-weight: 600; src: url("file:///Users/kartikmehta/Desktop/beam/website/public/assets/inter-semibold.woff2") format("woff2"); }
+      @font-face { font-family: "Mono"; font-weight: 400; src: url("file:///Users/kartikmehta/Desktop/beam/website/public/assets/roboto-mono.woff2") format("woff2"); }
+      * { margin: 0; padding: 0; box-sizing: border-box; }
+      html, body { width: 1280px; height: 400px; }
+      body {
+        font-family: "Inter", sans-serif;
+        background:
+          radial-gradient(1100px 650px at 88% -20%, rgba(0, 128, 188, 0.26), transparent 60%),
+          radial-gradient(820px 520px at -5% 130%, rgba(0, 128, 188, 0.10), transparent 55%),
+          #0a0b0d;
+        color: #f5f7fa;
+        padding: 52px 64px;
+        display: flex;
+        flex-direction: column;
+        justify-content: space-between;
+        position: relative;
+        overflow: hidden;
+      }
+      .grid {
+        position: absolute; inset: 0;
+        background-image:
+          linear-gradient(rgba(255,255,255,0.035) 1px, transparent 1px),
+          linear-gradient(90deg, rgba(255,255,255,0.035) 1px, transparent 1px);
+        background-size: 46px 46px;
+        mask-image: radial-gradient(760px 460px at 72% 0%, #000 0%, transparent 72%);
+      }
+      .brand { display: flex; align-items: center; gap: 18px; position: relative; }
+      .mark {
+        width: 64px; height: 64px; border-radius: 18px; background: #0080BC;
+        display: flex; align-items: center; justify-content: center;
+        box-shadow: 0 10px 38px rgba(0, 128, 188, 0.48);
+      }
+      .mark svg { width: 40px; height: 40px; }
+      .word { font-size: 40px; font-weight: 600; letter-spacing: -0.02em; }
+      .pill {
+        margin-left: 6px; font-size: 18px; font-weight: 500; color: #9fb4c4;
+        border: 1px solid rgba(255,255,255,0.14); border-radius: 999px; padding: 7px 16px;
+      }
+      h1 {
+        position: relative;
+        font-size: 62px; line-height: 1.02; font-weight: 600; letter-spacing: -0.035em;
+        max-width: 1020px;
+      }
+      h1 span { color: #38a7dd; }
+      .sub { position: relative; font-size: 24px; font-weight: 400; color: #b9c6d2; margin-top: 16px; max-width: 940px; }
+      .foot { display: flex; align-items: center; justify-content: space-between; position: relative; }
+      .caps { display: flex; gap: 12px; flex-wrap: wrap; }
+      .cap {
+        font-size: 20px; font-weight: 500; color: #dfe8ef;
+        border: 1px solid rgba(255,255,255,0.14); background: rgba(255,255,255,0.03);
+        border-radius: 999px; padding: 9px 18px; display: flex; align-items: center; gap: 9px;
+      }
+      .cap b { color: #38a7dd; font-weight: 600; }
+      .tag { font-family: "Mono"; font-size: 18px; color: #7d8c99; letter-spacing: 0.02em; }
+    </style>
+  </head>
+  <body>
+    <div class="grid"></div>
+    <div class="brand">
+      <span class="mark"><svg viewBox="0 0 24 24"><path fill="#fff" fill-rule="evenodd" d="M20.894 8.662A9.5 9.5 0 1 1 15.338 3.106A4 4 0 0 0 13.618 5.911A6.3 6.3 0 1 0 18.089 10.382A4 4 0 0 0 20.894 8.662ZM20.186 6.414A2.6 2.6 0 1 1 14.986 6.414A2.6 2.6 0 1 1 20.186 6.414Z"/></svg></span>
+      <span class="word">beam</span>
+      <span class="pill">Android wallet</span>
+    </div>
+    <div>
+      <h1>Pay anyone you see<br />on your screen. <span>Your call.</span></h1>
+      <p class="sub">A floating wallet over every app. AI agents you approve, USDC settled in a second.</p>
+    </div>
+    <div class="foot">
+      <div class="caps">
+        <span class="cap"><b>ENS</b> names</span>
+        <span class="cap"><b>World ID</b> approvals</span>
+        <span class="cap"><b>USDC</b> on Arc</span>
+        <span class="cap"><b>MCP</b> agents</span>
+      </div>
+      <span class="tag">beam.mrmehta.in</span>
+    </div>
+  </body>
+</html>
