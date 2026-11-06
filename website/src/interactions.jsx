@@ -518,7 +518,7 @@ function Playground() {
             <span className="agent-mini">
               <Icon name="terminal-2" /> Agent request
             </span>
-            <p>“Pay 0.006 ETH for API credits.”</p>
+            <p>“Pay 5 USDC for API credits.”</p>
             <span>Waiting for your approval</span>
           </div>
         </aside>
@@ -554,7 +554,7 @@ const SAFETY = [
     kind: "safe",
     icon: "shield-check",
     message:
-      "Your half is 0.0085 ETH. Send it to maya.eth for coffee?",
+      "Your half is 5 USDC. Send it to maya.eth for coffee?",
     signals: [
       "No common warning signs in this sample.",
       "Still check the recipient, amount and network.",
@@ -579,7 +579,7 @@ const SAFETY = [
     kind: "danger",
     icon: "shield-x",
     message:
-      "To receive your refund, install AnyDesk and pay a 0.01 ETH processing fee. Share your recovery phrase to verify.",
+      "To receive your refund, install AnyDesk and pay a 10 USDC processing fee. Share your recovery phrase to verify.",
     signals: [
       "Asks for a secret recovery phrase.",
       "Requests remote-access software.",
@@ -638,26 +638,17 @@ function Shield() {
     </div>
   );
 }
-const CLIENTS = ["Claude Desktop", "Codex", "Other MCP"];
+const CLIENTS = ["Claude Code", "Codex"];
 function Agents() {
   const motion = useMotion();
   const [client, setClient] = useState(0),
     [state, setState] = useState("idle"),
     [copy, setCopy] = useState(false);
-  const env = {
-    BEAMPAY_ADDRESS: "<configured-contract>",
-    MCP_WALLET_ADDRESS: "<wallet-address>",
-  };
-  const server = { command: "node", args: ["/path/to/beam/server/dist/mcp.js"], env };
-  const continuation = " " + String.fromCharCode(92) + "\n  ";
-  const snippet = client === 0 ? JSON.stringify({ mcpServers: { beam: server } }, null, 2)
-    : client === 1 ? [
-        "codex mcp add beam",
-        "--env BEAMPAY_ADDRESS='<configured-contract>'",
-        "--env MCP_WALLET_ADDRESS='<wallet-address>'",
-        "-- node /path/to/beam/server/dist/mcp.js",
-      ].join(continuation)
-    : JSON.stringify(server, null, 2);
+  const url = "https://your-beam-server/mcp/<your-wallet>";
+  const snippet =
+    client === 0
+      ? `claude mcp add --transport http beam ${url}`
+      : `codex mcp add beam --url ${url}`;
   return (
     <div className="agent-workspace">
       <div className="agent-terminal">
@@ -698,19 +689,19 @@ function Agents() {
           }}
         >
           <Icon name={copy ? "check" : "copy"} />
-          {copy ? "Copied" : "Copy template"}
+          {copy ? "Copied" : "Copy command"}
         </button>
         <p>
-          Build the server first, then configure your client to launch it over
-          stdio. Use the contract address for your configured network.
+          Connect over streamable HTTP in one command — no stdio, no API key.
+          Swap in your Beam server URL and wallet address.
         </p>
         <div className="agent-limit">
-          <span>Per-payment limit</span>
-          <b>0.025 ETH</b>
-          <span>MCP daily limit</span>
-          <b>0.10 ETH</b>
+          <span>Per-payment cap</span>
+          <b>25 USDC</b>
+          <span>Agent daily limit</span>
+          <b>100 USDC</b>
         </div>
-        <small>Sample configuration · external requests require World ID</small>
+        <small>Screen or agent instructions can’t redirect a payment · every send needs World ID</small>
       </div>
       <SpotlightCard className="agent-approval" motion={motion}>
         <div className="agent-path">
@@ -733,14 +724,14 @@ function Agents() {
           {state === "idle"
             ? "Your agent asks. You decide."
             : state === "pending"
-              ? "API credits. 0.006 ETH."
+              ? "API credits. 5 USDC."
               : "Your decision makes the difference."}
         </h3>
         <p>
           {state === "idle"
             ? "Try a local example of an agent requesting payment. No key or wallet required."
             : state === "pending"
-              ? "The agent proposes 0.006 ETH to studio.eth on the sample EVM testnet. Open the review link and approve with your linked World ID."
+              ? "The agent proposes 5 USDC to studio.eth on Arc. Open the review on your phone and approve with your linked World ID."
               : state === "declined"
                 ? "The phone stopped the request before confirmation."
                 : state === "ready"
@@ -785,20 +776,20 @@ const STEPS = [
     title: "Bring the details into view.",
     body: "Open a message, email or another screen with an amount and recipient. If an app hides its text from accessibility, copy the details instead.",
     icon: "message-circle",
-    preview: "“Send 0.0085 ETH to maya.eth on testnet.”",
+    preview: "“Send 5 USDC to maya.eth on Arc.”",
   },
   {
     title: "Tap the floating Beam.",
     body: "Beam reads accessible visible text on demand. Ask “pay this” or “is this safe?” You can inspect and exclude the captured text.",
     icon: "scan",
-    preview: "Amount  0.0085 ETH\nRecipient  maya.eth\nNetwork  EVM testnet",
+    preview: "Amount  5 USDC\nRecipient  maya.eth\nNetwork  Arc",
   },
   {
     title: "Review before you approve.",
     body: "Check the recipient, amount and risk signals. Over-cap, first-time and external-agent requests can ask for World ID before device confirmation.",
     icon: "fingerprint",
     preview:
-      "Review payment\n0.0085 ETH → maya.eth\nLooks safe · Check every detail",
+      "Review payment\n5 USDC → maya.eth\nLooks safe · Check every detail",
   },
   {
     title: "Get back to the conversation.",

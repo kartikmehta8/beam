@@ -20,9 +20,9 @@ function PayScene({ Icon, Mark }) {
           <b>Priya</b>
           <p>Coffee was a good call.</p>
           <p>
-            Your half is 0.0085 ETH.
+            Your half is 5 USDC.
             <br />
-            maya.eth · testnet
+            maya.eth · Arc
           </p>
         </div>
       </div>
@@ -30,10 +30,10 @@ function PayScene({ Icon, Mark }) {
         <div className="journey-payment-top">
           <Mark />
           <span>{review ? "Ready for your review" : "Beam is right here"}</span>
-          <span className="testnet">Testnet</span>
+          <span className="testnet">Arc</span>
         </div>
         <div className="journey-amount">
-          0.0085 <span>ETH</span>
+          5 <span>USDC</span>
         </div>
         <p>
           {review
@@ -66,7 +66,7 @@ function CheckScene({ Icon }) {
         <p>
           {trap
             ? "Pay a processing fee to receive your refund. Share your recovery phrase to verify."
-            : "Your half is 0.0085 ETH for coffee. Send to maya.eth on testnet?"}
+            : "Your half is 5 USDC for coffee. Send to maya.eth on Arc?"}
         </p>
       </div>
       <div className="journey-risk">
@@ -107,7 +107,7 @@ function NameScene({ Icon, Mark }) {
             : "Beam re-resolves ENS on your phone."}
         </small>
       </div>
-      <span className="network-token">EVM testnet</span>
+      <span className="network-token">Arc</span>
       <button className="text-button" onClick={() => setResolved(!resolved)}>
         {resolved ? "Show the name again" : "Show sample resolution"}
         <Icon name={resolved ? "refresh" : "arrow-up-right"} />
@@ -121,8 +121,8 @@ function ApprovalScene({ Icon }) {
   return (
     <div className="journey-voice-scene">
       <span className="journey-world-mark"><img src="/assets/world.svg" alt="" width="42" height="42" /></span>
-      <p>{approved ? "World ID approved." : "0.042 ETH needs World ID."}</p>
-      <span>{approved ? "The phone still asks you to confirm." : "This exceeds the sample 0.025 ETH cap."}</span>
+      <p>{approved ? "World ID approved." : "40 USDC needs World ID."}</p>
+      <span>{approved ? "The phone still asks you to confirm." : "This exceeds the sample 25 USDC cap."}</span>
       <button className="button secondary" onClick={() => setApproved(!approved)}>
         <Icon name={approved ? "refresh" : "check"} />
         {approved ? "Reset example" : "Simulate approval"}
@@ -353,7 +353,7 @@ export default function FeatureJourney({ motion, Icon, Mark }) {
   const copy = [
     "A message already has the amount and recipient. Tap Beam, read the details and review the payment on your phone.",
     "Compare a coffee split with a refund trap. Scam Shield explains the signals, so you can make the call.",
-    "Pay an ENS name you can read. Beam resolves it on Ethereum, then checks it again on your phone for the EVM testnet payment.",
+    "Pay an ENS name you can read. Beam resolves it on Ethereum, then checks it again on your phone before the Arc payment.",
     "World ID adds a human approval step for over-cap and external-agent requests. The wallet still needs your confirmation on the phone.",
   ];
   return (

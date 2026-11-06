@@ -49,12 +49,12 @@ for (const app of ["WhatsApp", "Email", "Telegram"])
   assert.match(code, new RegExp(`name:\\s*["']${app}["']`));
 assert.ok(code.includes("prefers-reduced-motion"));
 const preview = readFileSync("src/ProductPreview.jsx", "utf8");
-assert.doesNotMatch(code + journey + preview, /\b(?:Arc|USDC)\b/i);
+assert.doesNotMatch(code + journey + preview, /\b(?:Monad|MON)\b|orb-demo\.|orb-v1/i, "No Monad or orb leakage in examples");
 assert.doesNotMatch(code + journey + preview, /\bfetch\s*\(/, "Examples must stay browser-local");
 assert.match(pages.get("dist/index.html"), /id="preview-mount"/);
 assert.match(pages.get("dist/download/index.html"), /View build instructions/);
 for (const html of pages.values()) {
-  assert.doesNotMatch(html, /\b(?:Arc|USDC|Monad|MON)\b|orb-demo\.|orb-v1/i);
+  assert.doesNotMatch(html, /\b(?:Monad|MON)\b|orb-demo\.|orb-v1/i);
 }
 assert.ok(statSync("dist/assets/interactions.js").size < 300000);
 // Follow emitted static and lazy imports so a deploy cannot omit a GSAP chunk.

@@ -79,7 +79,7 @@
                   <use href="/assets/icons.svg#player-play" /></svg
               ></a>
             </div>
-            <p class="fine">Android prototype · EVM testnet · ETHGlobal Mumbai</p>
+            <p class="fine">Android prototype · USDC on Arc · ETHGlobal Mumbai</p>
           </div>
         </div>
         <figure class="product-demo" id="product-demo">
@@ -163,8 +163,9 @@
         <div class="section-heading">
           <h2>Your agents can ask.<br />Only you can approve.</h2>
           <p>
-            Connect Claude Desktop, Codex or another MCP client. Open the
-            review link on your phone and approve with World ID.
+            Connect Claude Code or Codex over MCP with a single URL — no stdio,
+            no API key. Screen or agent instructions can’t redirect a payment,
+            and every send needs your World ID approval on your phone.
           </p>
         </div>
         <div id="agents-mount"></div>
@@ -257,7 +258,7 @@
           </div>
           <button id="faq-expand" class="text-button">Expand all</button>
         </div>
-        <p class="fine" id="faq-count" role="status">10 answers</p>
+        <p class="fine" id="faq-count" role="status">14 answers</p>
         <div class="faq-list">
           <details data-topic="Using Beam">
             <summary>What is Beam?<span aria-hidden="true">+</span></summary>
@@ -269,7 +270,15 @@
           </details>
           <details data-topic="Payments">
             <summary>What network does Beam pay on?<span aria-hidden="true">+</span></summary>
-            <div class="faq-answer"><p>The browser demo lets you compare EVM testnets. The Android app uses the single payment network supported by its source build.</p></div>
+            <div class="faq-answer"><p>The Android app settles in USDC on Arc. The browser demo above lets you compare example EVM testnets, but the app uses the single payment network in its build.</p></div>
+          </details>
+          <details data-topic="Payments">
+            <summary>What is BeamPay?<span aria-hidden="true">+</span></summary>
+            <div class="faq-answer"><p>BeamPay is Beam’s onchain contract on Arc. It forwards each USDC payment and emits a receipt. Payments above your cap need an EIP-712 approval signed after a World ID check, which the contract verifies before it will move funds.</p></div>
+          </details>
+          <details data-topic="Payments">
+            <summary>Can I set spending limits?<span aria-hidden="true">+</span></summary>
+            <div class="faq-answer"><p>Yes. An onchain per-payment cap and a daily limit apply to every payment. Anything over the cap requires a fresh World ID approval, enforced by the BeamPay contract.</p></div>
           </details>
           <details data-topic="Payments">
             <summary>Can I pay someone by ENS name?<span aria-hidden="true">+</span></summary>
@@ -285,7 +294,15 @@
           </details>
           <details data-topic="Agents">
             <summary>Can an external agent spend on its own?<span aria-hidden="true">+</span></summary>
-            <div class="faq-answer"><p>An MCP agent can prepare a payment and return a phone review link. The request always needs World ID and separate device confirmation.</p></div>
+            <div class="faq-answer"><p>No. An MCP agent can only propose a payment that opens for review on your phone. The request always needs your World ID approval and a separate device confirmation.</p></div>
+          </details>
+          <details data-topic="Agents">
+            <summary>How do I connect an agent?<span aria-hidden="true">+</span></summary>
+            <div class="faq-answer"><p>Beam runs a hosted MCP server over streamable HTTP. Add it to Claude Code or Codex with one command pointing at your Beam server URL and wallet — no stdio and no API key. The tools can inspect recipients, read your balance and propose payments you approve.</p></div>
+          </details>
+          <details data-topic="Safety">
+            <summary>Can a screen or agent trick Beam into paying?<span aria-hidden="true">+</span></summary>
+            <div class="faq-answer"><p>Beam treats screen text and agent messages as untrusted. Instructions hidden in them — “ignore previous instructions”, fake system prompts, a swapped recipient — can’t change what Beam does or redirect a payment. Preparing a payment is always a separate action you take, confirmed with your fingerprint.</p></div>
           </details>
           <details data-topic="Using Beam">
             <summary>Can I use voice?<span aria-hidden="true">+</span></summary>
@@ -314,7 +331,7 @@
               <svg class="icon" aria-hidden="true">
                 <use href="/assets/icons.svg#arrow-down" /></svg
             ></a>
-            <p>Android source · EVM testnet setup</p>
+            <p>Android source · Arc testnet setup</p>
             <a href="/download/#release-notes" class="text-link"
               >What’s in the prototype
               <svg class="icon" aria-hidden="true">
@@ -336,7 +353,7 @@
         ><a href="/privacy.html">Privacy & permissions</a
         ><a href="/#faq">Questions?</a>
       </div>
-      <small>Beam · ETHGlobal Mumbai prototype · EVM testnet</small>
+      <small>Beam · ETHGlobal Mumbai prototype · USDC on Arc</small>
     </footer>
     <script type="module" src="/assets/interactions.js"></script>
   </body>

@@ -70,7 +70,7 @@
         <div class="download-layout">
           <div class="download-panel">
             <h2>Beam for Android</h2>
-            <p class="release-meta">Source build · EVM testnet</p>
+            <p class="release-meta">Source build · USDC on Arc</p>
             <a class="button" href="https://github.com/kartikmehta8/beam#run">View build instructions
               <svg class="icon" aria-hidden="true"><use href="/assets/icons.svg#arrow-up-right" /></svg>
             </a>
@@ -81,8 +81,8 @@
             </details>
           </div>
           <aside class="before-install">
-            <h3>Start on the configured testnet.</h3>
-            <p>Use the test asset and BeamPay contract for the network supported by your source build. The app and server need to use the same network and contract.</p>
+            <h3>Start on Arc.</h3>
+            <p>Use test USDC and the BeamPay contract on Arc. The app and server need to use the same network and contract.</p>
             <p>For World ID approvals, configure the relying party on the server. The staging simulator lets you exercise the flow during development.</p>
             <a class="text-link" href="/privacy.html">Understand the permissions
               <svg class="icon" aria-hidden="true"><use href="/assets/icons.svg#arrow-up-right" /></svg>
@@ -93,22 +93,23 @@
       <section class="setup-section shell" id="setup">
         <div class="section-heading"><h2>Let’s get you<br />up and running.</h2><p>Your checklist progress stays in this browser.</p></div>
         <div class="setup-list">
-          <label class="setup-step"><input type="checkbox" data-step="0" /><span class="step-index">1</span><span><strong>Configure BeamPay and the server</strong><span>Use the repository instructions to deploy BeamPay on the supported testnet. Set the contract address and server environment.</span></span></label>
+          <label class="setup-step"><input type="checkbox" data-step="0" /><span class="step-index">1</span><span><strong>Configure BeamPay and the server</strong><span>Use the repository instructions to deploy BeamPay on Arc. Set the contract address and server environment.</span></span></label>
           <label class="setup-step"><input type="checkbox" data-step="1" /><span class="step-index">2</span><span><strong>Build the Android app</strong><span>Configure Privy, the agent URL and BeamPay. Run the Android build on a connected device.</span></span></label>
           <label class="setup-step"><input type="checkbox" data-step="2" /><span class="step-index">3</span><span><strong>Enable the overlay</strong><span>Open the Beam tab and allow display over other apps. Enable the Beam screen reader for on-tap capture, or use copied text.</span></span></label>
-          <label class="setup-step"><input type="checkbox" data-step="3" /><span class="step-index">4</span><span><strong>Fund the test wallet</strong><span>Sign in, then open Faucet in the Wallet’s testnet view. For approval flows, link World ID in Profile.</span></span></label>
+          <label class="setup-step"><input type="checkbox" data-step="3" /><span class="step-index">4</span><span><strong>Fund the test wallet</strong><span>Sign in, then open Faucet in the Wallet to get test USDC on Arc. For approval flows, link World ID in Profile.</span></span></label>
           <label class="setup-step"><input type="checkbox" data-step="4" /><span class="step-index">5</span><span><strong>Review a test payment</strong><span>Show an amount and recipient. Tap Beam, ask to pay, review, then confirm on your phone.</span></span></label>
         </div>
         <p class="fine" id="setup-progress" role="status">0 of 5 steps checked</p>
       </section>
       <section class="release-section shell" id="release-notes">
-        <div class="section-heading"><h2>Inside the prototype.</h2><p>From an on-screen request to a testnet receipt.</p></div>
+        <div class="section-heading"><h2>Inside the prototype.</h2><p>From an on-screen request to an Arc receipt.</p></div>
         <ul class="release-list">
-          <li><strong>BeamPay</strong><span>Route test payments on the network supported by the source build.</span></li>
+          <li><strong>BeamPay on Arc</strong><span>Settle USDC with an onchain receipt; over-cap sends need an EIP-712 approval.</span></li>
           <li><strong>ENS</strong><span>Pay by name and claim a Beam subname when configured.</span></li>
-          <li><strong>World ID</strong><span>Approve eligible requests and cap increases with a linked World ID.</span></li>
-          <li><strong>External agents</strong><span>MCP proposals open on your phone for review and approval.</span></li>
-          <li><strong>Scam Shield</strong><span>See signals in messages and payment reviews.</span></li>
+          <li><strong>World ID</strong><span>Approve over-cap and eligible requests with a linked World ID.</span></li>
+          <li><strong>Hosted MCP agents</strong><span>Connect Claude Code or Codex with one URL; proposals open on your phone to approve.</span></li>
+          <li><strong>Prompt-injection guard</strong><span>Screen text and agent instructions can’t redirect a payment.</span></li>
+          <li><strong>Scam Shield</strong><span>See risk signals in messages and payment reviews.</span></li>
         </ul>
       </section>
       <section class="shell download-bottom">
@@ -129,7 +130,7 @@
         ><a href="/privacy.html">Privacy & permissions</a
         ><a href="/#faq">Questions?</a>
       </div>
-      <small>Beam · ETHGlobal Mumbai prototype · EVM testnet</small>
+      <small>Beam · ETHGlobal Mumbai prototype · USDC on Arc</small>
     </footer>
     <script type="module" src="/assets/interactions.js"></script>
   </body>

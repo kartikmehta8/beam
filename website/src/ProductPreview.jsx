@@ -7,7 +7,7 @@ const frames = [
     title: "Pay from the screen you’re on.",
     caption: "Tap the floating Beam while the payment details are visible.",
     label: "Capture",
-    detail: "Coffee was 0.0085 ETH. Send it to maya.eth?",
+    detail: "Coffee was 5 USDC. Send it to maya.eth?",
     icon: "scan",
     partner: "ens",
   },
@@ -15,23 +15,23 @@ const frames = [
     title: "See where it goes.",
     caption: "Beam resolves the ENS name and shows the amount and recipient for review.",
     label: "Review payment",
-    detail: "0.0085 ETH to maya.eth",
+    detail: "5 USDC to maya.eth",
     icon: "list-details",
     partner: "ens",
   },
   {
     title: "Some requests need World ID.",
-    caption: "A 0.042 ETH sample exceeds the per-payment cap. World ID adds a human approval step.",
+    caption: "A 40 USDC sample exceeds the per-payment cap. World ID adds a human approval step.",
     label: "World ID required",
-    detail: "0.042 ETH to studio.eth",
+    detail: "40 USDC to studio.eth",
     icon: "fingerprint",
     partner: "world",
   },
   {
     title: "Confirm on your phone.",
-    caption: "The phone signs after review. BeamPay routes the payment on an EVM testnet.",
+    caption: "The phone signs after review. BeamPay settles the payment in USDC on Arc.",
     label: "Sample receipt",
-    detail: "0.042 ETH · EVM testnet",
+    detail: "40 USDC · Arc",
     icon: "circle-check",
     partner: null,
   },
@@ -91,7 +91,7 @@ export default function ProductPreview({ motion, Icon, Mark }) {
             <b>{frame.label}</b>
             <span>{frame.detail}</span>
           </div>
-          <div className="preview-device-button"><Icon name={frame.icon} /> <span>{index === 0 ? "Tap Beam" : "EVM testnet"}</span></div>
+          <div className="preview-device-button"><Icon name={frame.icon} /> <span>{index === 0 ? "Tap Beam" : "Arc"}</span></div>
         </div>
       </SpotlightCard>
       {!started && (
