@@ -1,0 +1,104 @@
+<template>
+  <style>
+    #root { position: absolute; inset: 0; background: var(--ground); overflow: hidden; font-family: var(--font-display); }
+    #s4-grid { position: absolute; inset: 0; z-index: 0; background-image: linear-gradient(rgba(255,255,255,0.03) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,0.03) 1px, transparent 1px); background-size: 64px 64px; -webkit-mask-image: radial-gradient(1100px 760px at 50% 46%, #000, transparent 74%); mask-image: radial-gradient(1100px 760px at 50% 46%, #000, transparent 74%); }
+    .s4-beat { position: absolute; inset: 0; z-index: 2; display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; }
+    .s4-mark { width: 118px; height: 118px; border-radius: 30px; display: flex; align-items: center; justify-content: center; margin-bottom: 36px; }
+    .s4-mark.light { background: #eef4f8; }
+    .s4-mark.dark { background: var(--surface); border: 1px solid var(--line); }
+    .s4-mark.blue { background: var(--accent); box-shadow: 0 16px 50px rgba(0,128,188,0.5); }
+    .s4-mark img { width: 70px; height: 70px; }
+    .s4-mark svg { width: 66px; height: 66px; }
+    .s4-wm { font-size: 60px; font-weight: 700; letter-spacing: -0.02em; color: #fff; }
+    .s4-beat h2 { font-size: 80px; font-weight: 600; letter-spacing: -0.035em; color: var(--ink); line-height: 1.02; }
+    .s4-beat h2 .a { color: var(--accent-2); }
+    .s4-beat p { margin-top: 24px; font-size: 34px; color: var(--ink-2); max-width: 900px; line-height: 1.4; }
+    .s4-card { margin-top: 48px; width: 760px; background: var(--surface); border: 1px solid var(--line); border-radius: 22px; padding: 30px 36px; text-align: left; box-shadow: 0 30px 90px rgba(0,0,0,0.45); }
+    .s4-row { display: flex; align-items: center; justify-content: space-between; font-size: 30px; padding: 14px 0; }
+    .s4-row + .s4-row { border-top: 1px solid var(--line); }
+    .s4-row .lbl { color: var(--ink-2); }
+    .s4-row .val { color: var(--ink); font-weight: 600; }
+    .s4-row .val.mono { font-family: var(--font-mono); font-size: 27px; color: var(--accent-2); font-weight: 400; }
+    .s4-foot { margin-top: 18px; font-size: 26px; color: var(--ink-3); }
+    .s4-foot b { color: var(--accent-2); }
+    .s4-chip { display: inline-flex; align-items: center; gap: 10px; font-size: 27px; color: #bdf0c6; border: 1px solid rgba(40,200,64,0.4); background: rgba(40,200,64,0.1); border-radius: 99px; padding: 10px 20px; }
+    .s4-prog { position: absolute; z-index: 5; bottom: 70px; left: 50%; transform: translateX(-50%); display: flex; gap: 14px; }
+    .s4-prog i { width: 46px; height: 7px; border-radius: 99px; background: #2a2f36; display: block; }
+  </style>
+  <div id="root" data-composition-id="s4-features" data-width="1920" data-height="1080">
+    <div id="s4-grid"></div>
+
+    <div class="s4-beat clip" id="s4-b1" data-start="0" data-duration="15" data-track-index="0">
+      <div class="s4-mark dark"><svg viewBox="0 0 24 24" fill="none" stroke="#38a7dd" stroke-width="1.8" stroke-linecap="round"><path d="M4 7h10M18 7h2M4 12h4M12 12h8M4 17h12M19 17h1"/><circle cx="16" cy="7" r="2.3" fill="#38a7dd" stroke="none"/><circle cx="10" cy="12" r="2.3" fill="#38a7dd" stroke="none"/><circle cx="17.5" cy="17" r="2.3" fill="#38a7dd" stroke="none"/></svg></div>
+      <h2>Spending limits, <span class="a">on-chain.</span></h2>
+      <p>A per-payment cap and a daily limit, enforced by the contract.</p>
+      <div class="s4-card">
+        <div class="s4-row"><span class="lbl">Per-payment cap</span><span class="val">25 USDC</span></div>
+        <div class="s4-row"><span class="lbl">Daily limit</span><span class="val">100 USDC</span></div>
+        <div class="s4-foot">Over the cap → a fresh <b>World ID</b> approval, verified by BeamPay.</div>
+      </div>
+    </div>
+
+    <div class="s4-beat clip" id="s4-b2" data-start="14" data-duration="15" data-track-index="1">
+      <div class="s4-mark light"><img src="assets/ens.svg" alt="" /></div>
+      <h2>Pay a name. <span class="a">Claim your own.</span></h2>
+      <p>Pay an ENS name you can read — Beam re-resolves it on your phone.</p>
+      <div class="s4-card">
+        <div class="s4-row"><span class="lbl">Your handle</span><span class="val mono">sample.beamfi.eth</span></div>
+        <div class="s4-row"><span class="lbl">Pay to</span><span class="val mono">maya.eth → 0x7a…9B2e</span></div>
+        <div class="s4-foot">A Beam subname on <b>ENS v2</b>, one per person.</div>
+      </div>
+    </div>
+
+    <div class="s4-beat clip" id="s4-b3" data-start="28" data-duration="15" data-track-index="2">
+      <div class="s4-mark dark"><img src="assets/world.svg" alt="" /></div>
+      <h2>A real human <span class="a">in the loop.</span></h2>
+      <p>One person, one wallet. Risky and agent payments need your proof.</p>
+      <div class="s4-card">
+        <div class="s4-row"><span class="lbl">World ID</span><span class="s4-chip">✓ linked</span></div>
+        <div class="s4-foot">Over-cap, first-time and external-agent payments ask for <b>World ID</b>.</div>
+      </div>
+    </div>
+
+    <div class="s4-beat clip" id="s4-b4" data-start="42" data-duration="14" data-track-index="3">
+      <div class="s4-mark blue"><span class="s4-wm">Arc</span></div>
+      <h2>Settled in <span class="a">USDC on Arc.</span></h2>
+      <p>BeamPay forwards the payment and emits a receipt — end to end on Arc.</p>
+      <div class="s4-card">
+        <div class="s4-row"><span class="lbl">BeamPay · Arc</span><span class="val">5 USDC → studio.eth</span></div>
+        <div class="s4-row"><span class="lbl">Receipt</span><span class="val mono">0x4f3a…c812</span></div>
+        <div class="s4-foot">EIP-712 approvals verified <b>on-chain</b> before funds move.</div>
+      </div>
+    </div>
+
+    <div class="s4-prog">
+      <i id="s4-p1"></i><i id="s4-p2"></i><i id="s4-p3"></i><i id="s4-p4"></i>
+    </div>
+  </div>
+  <script>
+    const tl = gsap.timeline({ paused: true });
+    const beat = (id, t, out) => {
+      tl.fromTo("#" + id + " .s4-mark", { opacity: 0, scale: 0.6 }, { opacity: 1, scale: 1, duration: 0.6, ease: "back.out(1.8)" }, t);
+      tl.fromTo("#" + id + " h2", { opacity: 0, y: 28 }, { opacity: 1, y: 0, duration: 0.6, ease: "power3.out" }, t + 0.2);
+      tl.fromTo("#" + id + " p", { opacity: 0, y: 20 }, { opacity: 1, y: 0, duration: 0.6 }, t + 0.4);
+      tl.fromTo("#" + id + " .s4-card", { opacity: 0, y: 30 }, { opacity: 1, y: 0, duration: 0.6, ease: "power3.out" }, t + 0.7);
+      tl.to("#" + id, { opacity: 0, duration: 0.5, ease: "power2.in" }, out);
+    };
+    beat("s4-b1", 0.3, 14.2);
+    beat("s4-b2", 14.3, 28.2);
+    beat("s4-b3", 28.3, 42.2);
+    // last beat: no fade-out (scene ends)
+    tl.fromTo("#s4-b4 .s4-mark", { opacity: 0, scale: 0.6 }, { opacity: 1, scale: 1, duration: 0.6, ease: "back.out(1.8)" }, 42.3);
+    tl.fromTo("#s4-b4 h2", { opacity: 0, y: 28 }, { opacity: 1, y: 0, duration: 0.6, ease: "power3.out" }, 42.5);
+    tl.fromTo("#s4-b4 p", { opacity: 0, y: 20 }, { opacity: 1, y: 0, duration: 0.6 }, 42.7);
+    tl.fromTo("#s4-b4 .s4-card", { opacity: 0, y: 30 }, { opacity: 1, y: 0, duration: 0.6, ease: "power3.out" }, 43.0);
+    // progress dots
+    const fill = (id, t) => tl.fromTo(id, { backgroundColor: "#2a2f36" }, { backgroundColor: "#38a7dd", duration: 0.4 }, t);
+    fill("#s4-p1", 0.3); fill("#s4-p2", 14.3); fill("#s4-p3", 28.3); fill("#s4-p4", 42.3);
+    tl.to("#s4-p1", { backgroundColor: "#2a2f36", duration: 0.4 }, 14.3);
+    tl.to("#s4-p2", { backgroundColor: "#2a2f36", duration: 0.4 }, 28.3);
+    tl.to("#s4-p3", { backgroundColor: "#2a2f36", duration: 0.4 }, 42.3);
+    window.__timelines["s4-features"] = tl;
+    tl.seek(0);
+  </script>
+</template>

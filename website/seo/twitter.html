@@ -1,0 +1,60 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <style>
+      @font-face { font-family: "Inter"; font-weight: 400; src: url("file:///Users/kartikmehta/Desktop/beam/website/public/assets/inter-regular.woff2") format("woff2"); }
+      @font-face { font-family: "Inter"; font-weight: 500; src: url("file:///Users/kartikmehta/Desktop/beam/website/public/assets/inter-medium.woff2") format("woff2"); }
+      @font-face { font-family: "Inter"; font-weight: 600; src: url("file:///Users/kartikmehta/Desktop/beam/website/public/assets/inter-semibold.woff2") format("woff2"); }
+      @font-face { font-family: "Mono"; font-weight: 400; src: url("file:///Users/kartikmehta/Desktop/beam/website/public/assets/roboto-mono.woff2") format("woff2"); }
+      * { margin: 0; padding: 0; box-sizing: border-box; }
+      html, body { width: 1200px; height: 630px; }
+      body {
+        font-family: "Inter", sans-serif;
+        background:
+          radial-gradient(1000px 650px at 85% -15%, rgba(0, 128, 188, 0.20), transparent 60%),
+          #0a0b0d;
+        color: #f5f7fa; padding: 68px 72px; position: relative; overflow: hidden;
+        display: flex; flex-direction: column; justify-content: space-between;
+      }
+      .grid { position: absolute; inset: 0; background-image:
+          linear-gradient(rgba(255,255,255,0.035) 1px, transparent 1px),
+          linear-gradient(90deg, rgba(255,255,255,0.035) 1px, transparent 1px);
+        background-size: 48px 48px; mask-image: radial-gradient(900px 600px at 75% 30%, #000 0%, transparent 75%); }
+      .brand { display: flex; align-items: center; gap: 18px; position: relative; }
+      .mark { width: 64px; height: 64px; border-radius: 17px; background: #0080BC; display: flex; align-items: center; justify-content: center; box-shadow: 0 10px 36px rgba(0,128,188,0.45); }
+      .mark svg { width: 40px; height: 40px; }
+      .word { font-size: 38px; font-weight: 600; letter-spacing: -0.02em; }
+      h1 { position: relative; font-size: 82px; line-height: 1.0; font-weight: 600; letter-spacing: -0.03em; }
+      h1 span { color: #38a7dd; }
+      .term { position: relative; margin-top: 10px; background: #111317; border: 1px solid rgba(255,255,255,0.1); border-radius: 16px; padding: 24px 28px; max-width: 1000px; box-shadow: 0 20px 60px rgba(0,0,0,0.4); }
+      .term .dots { display: flex; gap: 9px; margin-bottom: 16px; }
+      .term .dots i { width: 13px; height: 13px; border-radius: 50%; display: block; }
+      .term code { font-family: "Mono"; font-size: 25px; color: #e7eef4; }
+      .term code b { color: #38a7dd; font-weight: 400; }
+      .caps { display: flex; gap: 13px; position: relative; }
+      .cap { font-size: 21px; font-weight: 500; color: #dfe8ef; border: 1px solid rgba(255,255,255,0.14); background: rgba(255,255,255,0.03); border-radius: 999px; padding: 9px 19px; }
+      .cap b { color: #38a7dd; font-weight: 600; }
+    </style>
+  </head>
+  <body>
+    <div class="grid"></div>
+    <div class="brand">
+      <span class="mark"><svg viewBox="0 0 24 24"><path fill="#fff" fill-rule="evenodd" d="M20.894 8.662A9.5 9.5 0 1 1 15.338 3.106A4 4 0 0 0 13.618 5.911A6.3 6.3 0 1 0 18.089 10.382A4 4 0 0 0 20.894 8.662ZM20.186 6.414A2.6 2.6 0 1 1 14.986 6.414A2.6 2.6 0 1 1 20.186 6.414Z"/></svg></span>
+      <span class="word">beam</span>
+    </div>
+    <div>
+      <h1>Your agents can ask.<br /><span>Only you approve.</span></h1>
+      <div class="term">
+        <div class="dots"><i style="background:#ff5f57"></i><i style="background:#febc2e"></i><i style="background:#28c840"></i></div>
+        <code><b>$</b> claude mcp add --transport http beam https://&lt;server&gt;/mcp/&lt;wallet&gt;</code>
+      </div>
+    </div>
+    <div class="caps">
+      <span class="cap"><b>MCP</b> over HTTP</span>
+      <span class="cap"><b>World ID</b> approvals</span>
+      <span class="cap"><b>USDC</b> on Arc</span>
+      <span class="cap"><b>ENS</b> names</span>
+    </div>
+  </body>
+</html>

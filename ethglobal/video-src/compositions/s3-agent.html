@@ -1,0 +1,134 @@
+<template>
+  <style>
+    #root { position: absolute; inset: 0; background: var(--ground); overflow: hidden; font-family: var(--font-display); }
+    #s3-grid { position: absolute; inset: 0; z-index: 0; background-image: linear-gradient(rgba(255,255,255,0.03) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,0.03) 1px, transparent 1px); background-size: 64px 64px; -webkit-mask-image: radial-gradient(1200px 800px at 50% 40%, #000, transparent 78%); mask-image: radial-gradient(1200px 800px at 50% 40%, #000, transparent 78%); }
+    /* header */
+    #s3-head { position: absolute; z-index: 5; left: 90px; top: 66px; width: 1040px; height: 150px; }
+    #s3-head .k { font-size: 26px; font-weight: 600; letter-spacing: 0.08em; text-transform: uppercase; color: var(--accent-2); }
+    #s3-head h2 { margin-top: 12px; font-size: 58px; font-weight: 600; letter-spacing: -0.03em; color: var(--ink); }
+    .s3-cap { position: absolute; top: 0; left: 0; width: 1040px; }
+    /* terminal */
+    #s3-term { position: absolute; z-index: 3; left: 90px; top: 250px; width: 980px; height: 720px; background: #0e1014; border: 1px solid var(--line); border-radius: 22px; box-shadow: 0 40px 120px rgba(0,0,0,0.6); overflow: hidden; }
+    #s3-termbar { height: 58px; display: flex; align-items: center; gap: 12px; padding: 0 26px; border-bottom: 1px solid var(--line); }
+    #s3-termbar i { width: 15px; height: 15px; border-radius: 50%; display: block; }
+    #s3-termbar span { margin-left: 14px; font-family: var(--font-mono); font-size: 22px; color: var(--ink-3); }
+    #s3-body { padding: 30px 34px; font-family: var(--font-mono); font-size: 27px; line-height: 1.6; color: #e7eef4; }
+    .s3-line { display: block; white-space: pre-wrap; }
+    .s3-line .p { color: var(--accent-2); }
+    .s3-line .dim { color: var(--ink-3); }
+    .s3-line .ok { color: var(--ok); }
+    .s3-line .u { color: #d7b3ff; }
+    .s3-tools { margin-top: 10px; padding: 20px 24px; border: 1px solid var(--line); border-radius: 14px; background: rgba(255,255,255,0.02); }
+    .s3-tools .t { display: inline-block; margin: 6px 10px 6px 0; font-size: 23px; color: var(--ink-2); border: 1px solid var(--line); border-radius: 99px; padding: 8px 16px; }
+    .s3-tools .t b { color: var(--accent-2); font-weight: 400; }
+    #s3-caret { display: inline-block; width: 15px; height: 30px; background: var(--accent-2); vertical-align: -5px; margin-left: 4px; }
+    /* phone */
+    #s3-phone { position: absolute; z-index: 4; left: 1180px; top: 150px; width: 440px; height: 840px; border-radius: 52px; background: #05060a; border: 10px solid #1c2026; box-shadow: 0 50px 140px rgba(0,0,0,0.65); overflow: hidden; }
+    #s3-screen { position: absolute; inset: 10px; border-radius: 42px; background: var(--ground); overflow: hidden; padding: 60px 28px 28px; }
+    .s3-status { position: absolute; top: 0; left: 0; right: 0; height: 52px; display: flex; align-items: center; justify-content: space-between; padding: 0 34px; color: var(--ink); font-size: 22px; font-weight: 600; }
+    .s3-pscreen { position: absolute; inset: 0; padding: 70px 28px 28px; }
+    #s3-review { display: flex; flex-direction: column; }
+    .s3-badge { align-self: flex-start; display: inline-flex; align-items: center; gap: 10px; font-size: 22px; color: #ffd9a6; border: 1px solid rgba(254,188,46,0.4); background: rgba(254,188,46,0.1); border-radius: 99px; padding: 10px 18px; margin-bottom: 26px; }
+    .s3-rl { font-size: 22px; color: var(--ink-3); letter-spacing: 0.06em; text-transform: uppercase; }
+    .s3-amt { margin-top: 10px; font-size: 76px; font-weight: 700; letter-spacing: -0.03em; color: var(--ink); }
+    .s3-amt span { font-size: 36px; color: var(--ink-2); font-weight: 600; }
+    .s3-dst { margin-top: 14px; font-size: 30px; color: var(--ink); display: flex; align-items: center; gap: 12px; }
+    .s3-dst img { width: 30px; height: 30px; }
+    .s3-worldbtn { margin-top: 40px; height: 82px; border-radius: 22px; background: #111317; border: 1px solid var(--line); display: flex; align-items: center; justify-content: center; gap: 14px; font-size: 27px; font-weight: 600; color: var(--ink); }
+    .s3-worldbtn img { width: 32px; height: 32px; }
+    #s3-approved { position: absolute; inset: 0; padding: 70px 28px; display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; }
+    #s3-wmark { width: 120px; height: 120px; border-radius: 50%; background: rgba(255,255,255,0.06); display: flex; align-items: center; justify-content: center; margin-bottom: 30px; }
+    #s3-wmark img { width: 66px; height: 66px; }
+    #s3-approved h3 { font-size: 40px; color: var(--ink); font-weight: 600; }
+    #s3-approved .r { margin-top: 16px; font-size: 28px; color: var(--ink-2); }
+    #s3-approved .r b { color: var(--accent-2); }
+    #s3-approved .chk { margin-top: 26px; display: inline-flex; align-items: center; gap: 10px; font-size: 26px; color: #bdf0c6; }
+  </style>
+  <div id="root" data-composition-id="s3-agent" data-width="1920" data-height="1080">
+    <div id="s3-grid"></div>
+    <div id="s3-head" data-layout-allow-overlap>
+      <div class="s3-cap clip" id="s3-cap1" data-start="0" data-duration="14" data-track-index="0"><div class="k">01 · Connect</div><h2>Your agent, connected over MCP.</h2></div>
+      <div class="s3-cap clip" id="s3-cap2" data-start="14" data-duration="13" data-track-index="1"><div class="k">02 · Tools</div><h2>Read balances. Propose payments.</h2></div>
+      <div class="s3-cap clip" id="s3-cap3" data-start="27" data-duration="13" data-track-index="2"><div class="k">03 · Ask</div><h2>“Pay studio.eth for the API credits.”</h2></div>
+      <div class="s3-cap clip" id="s3-cap4" data-start="40" data-duration="14" data-track-index="3"><div class="k">04 · Approve</div><h2>Only you can say yes.</h2></div>
+    </div>
+
+    <div id="s3-term">
+      <div id="s3-termbar"><i style="background:var(--danger)"></i><i style="background:var(--warn)"></i><i style="background:var(--ok)"></i><span>claude code — beam</span></div>
+      <div id="s3-body">
+        <span class="s3-line clip" id="s3-l1" data-start="0.6" data-duration="53" data-track-index="4"><span class="p">$</span> claude mcp add --transport http beam \</span>
+        <span class="s3-line clip" id="s3-l2" data-start="1.6" data-duration="52" data-track-index="5">    https://senate-bouncy-banner.ngrok-free.dev/mcp/0xFCa8…bdEF</span>
+        <span class="s3-line clip" id="s3-l3" data-start="3.4" data-duration="51" data-track-index="6"><span class="ok">✓</span> <span class="dim">Added MCP server “beam” (streamable http)</span></span>
+        <span class="s3-line clip" id="s3-l4" data-start="14.4" data-duration="40" data-track-index="7" style="margin-top:14px"><span class="p">$</span> claude <span class="dim">› /mcp</span></span>
+        <div class="s3-tools clip" id="s3-tools" data-start="15.6" data-duration="38" data-track-index="8">
+          <div style="font-size:24px;color:var(--ink);margin-bottom:8px"><span class="ok">●</span> beam · connected</div>
+          <span class="t"><b>prepare_payment</b></span><span class="t"><b>inspect_recipient</b></span><span class="t"><b>get_wallet_balance</b></span><span class="t"><b>get_tx_status</b></span>
+        </div>
+        <span class="s3-line clip" id="s3-l6" data-start="27.4" data-duration="27" data-track-index="9" style="margin-top:16px"><span class="u">›</span> Pay studio.eth 5 USDC for the API credits</span>
+        <span class="s3-line clip" id="s3-l7" data-start="29.4" data-duration="25" data-track-index="10"><span class="dim">Calling prepare_payment…</span></span>
+        <span class="s3-line clip" id="s3-l8" data-start="31.2" data-duration="23" data-track-index="11"><span class="ok">✓</span> Opened a review on your phone.<span id="s3-caret"></span></span>
+      </div>
+    </div>
+
+    <div id="s3-phone" class="clip" data-start="29" data-duration="25" data-track-index="12">
+      <div id="s3-screen" data-layout-allow-overlap>
+        <div class="s3-status"><span>9:41</span><span>5G</span></div>
+        <div class="s3-pscreen" id="s3-review">
+          <span class="s3-badge">⚠ External agent</span>
+          <div class="s3-rl">Agent requested payment</div>
+          <div class="s3-amt">5 <span>USDC</span></div>
+          <div class="s3-dst"><img src="assets/ens.svg" alt="" /> to studio.eth</div>
+          <div class="s3-worldbtn" id="s3-worldbtn"><img src="assets/world.svg" alt="" /> Approve with World ID</div>
+        </div>
+        <div class="s3-pscreen" id="s3-approved">
+          <div id="s3-wmark"><img src="assets/world.svg" alt="" /></div>
+          <h3>World ID approved</h3>
+          <div class="r"><b>5 USDC</b> → studio.eth</div>
+          <div class="r">on Arc</div>
+          <div class="chk">✓ Sent</div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <script>
+    const tl = gsap.timeline({ paused: true });
+    const rise = (sel, t, d) => tl.fromTo(sel, { opacity: 0, y: 18 }, { opacity: 1, y: 0, duration: d || 0.5, ease: "power3.out" }, t);
+    // headers
+    ["#s3-cap1","#s3-cap2","#s3-cap3","#s3-cap4"].forEach((s, i) => {
+      tl.fromTo(s + " .k", { opacity: 0, x: -16 }, { opacity: 1, x: 0, duration: 0.4 }, [0,14,27,40][i]);
+      tl.fromTo(s + " h2", { opacity: 0, y: 20 }, { opacity: 1, y: 0, duration: 0.5, ease: "power3.out" }, [0,14,27,40][i] + 0.15);
+    });
+    tl.to("#s3-cap1", { opacity: 0, duration: 0.4 }, 13.4);
+    tl.to("#s3-cap2", { opacity: 0, duration: 0.4 }, 26.4);
+    tl.to("#s3-cap3", { opacity: 0, duration: 0.4 }, 39.4);
+    // terminal lines (reveal by opacity on the clip)
+    tl.fromTo("#s3-l1", { opacity: 0 }, { opacity: 1, duration: 0.3 }, 0.6);
+    tl.fromTo("#s3-l2", { opacity: 0 }, { opacity: 1, duration: 0.3 }, 1.6);
+    tl.fromTo("#s3-l3", { opacity: 0 }, { opacity: 1, duration: 0.3 }, 3.4);
+    tl.fromTo("#s3-l4", { opacity: 0 }, { opacity: 1, duration: 0.3 }, 14.4);
+    tl.fromTo("#s3-tools", { opacity: 0 }, { opacity: 1, duration: 0.4 }, 15.6);
+    tl.fromTo("#s3-tools .t", { opacity: 0, y: 10 }, { opacity: 1, y: 0, duration: 0.35, stagger: 0.1 }, 16.0);
+    tl.fromTo("#s3-l6", { opacity: 0 }, { opacity: 1, duration: 0.3 }, 27.4);
+    tl.fromTo("#s3-l7", { opacity: 0 }, { opacity: 1, duration: 0.3 }, 29.4);
+    tl.fromTo("#s3-l8", { opacity: 0 }, { opacity: 1, duration: 0.3 }, 31.2);
+    tl.fromTo("#s3-caret", { opacity: 1 }, { opacity: 0, duration: 0.5, repeat: 20, yoyo: true }, 31.5);
+    // phone slide in
+    tl.fromTo("#s3-phone", { opacity: 0 }, { opacity: 1, duration: 0.5 }, 29.0);
+    tl.fromTo("#s3-review .s3-badge", { opacity: 0, y: 12 }, { opacity: 1, y: 0, duration: 0.4 }, 30.2);
+    tl.fromTo("#s3-review .s3-rl", { opacity: 0 }, { opacity: 1, duration: 0.4 }, 30.5);
+    tl.fromTo("#s3-review .s3-amt", { opacity: 0, y: 20 }, { opacity: 1, y: 0, duration: 0.5 }, 30.8);
+    tl.fromTo("#s3-review .s3-dst", { opacity: 0, y: 16 }, { opacity: 1, y: 0, duration: 0.5 }, 31.2);
+    tl.fromTo("#s3-worldbtn", { opacity: 0, y: 16 }, { opacity: 1, y: 0, duration: 0.5 }, 32.0);
+    // world approve tap -> approved screen
+    tl.set("#s3-approved", { opacity: 0 }, 0);
+    tl.to("#s3-worldbtn", { backgroundColor: "#0a2b1a", borderColor: "rgba(40,200,64,0.5)", duration: 0.4 }, 40.5);
+    tl.to("#s3-review", { opacity: 0, duration: 0.4 }, 41.6);
+    tl.fromTo("#s3-approved", { opacity: 0 }, { opacity: 1, duration: 0.5 }, 42.0);
+    tl.fromTo("#s3-wmark", { opacity: 0, scale: 0.5 }, { opacity: 1, scale: 1, duration: 0.6, ease: "back.out(2)" }, 42.2);
+    tl.fromTo("#s3-approved h3", { opacity: 0, y: 16 }, { opacity: 1, y: 0, duration: 0.5 }, 42.7);
+    tl.fromTo("#s3-approved .r", { opacity: 0, y: 12 }, { opacity: 1, y: 0, duration: 0.4, stagger: 0.14 }, 43.0);
+    tl.fromTo("#s3-approved .chk", { opacity: 0, scale: 0.6 }, { opacity: 1, scale: 1, duration: 0.5, ease: "back.out(2)" }, 43.8);
+    window.__timelines["s3-agent"] = tl;
+    tl.seek(0);
+  </script>
+</template>
