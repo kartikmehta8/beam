@@ -1,0 +1,97 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="theme-color" content="#FFFFFF" />
+    <title>Beam — Privacy &amp; permissions</title>
+    <meta
+      name="description"
+      content="How Beam uses screen context, World ID, voice input and Android permissions."
+    />
+    <link rel="canonical" href="__SITE_URL__/privacy.html" />
+    <meta property="og:title" content="Beam — Privacy &amp; permissions" />
+    <meta
+      property="og:description"
+      content="How Beam uses screen context, World ID, voice input and Android permissions."
+    />
+
+    <meta name="twitter:card" content="summary" />
+    <link rel="icon" href="/assets/beam-mark.svg" type="image/svg+xml" />
+    <link
+      rel="preload"
+      href="/assets/inter-regular.woff2"
+      as="font"
+      type="font/woff2"
+      crossorigin
+    />
+    <link rel="stylesheet" href="/style.css" />
+    <link rel="stylesheet" href="/assets/interactions.css" />
+  </head>
+  <body>
+    <a class="skip-link" href="#main">Skip to content</a>
+    <header class="site-header">
+      <a href="/" class="brand" aria-label="Beam home"
+        ><span class="brand-mark" aria-hidden="true"
+          ><img src="/assets/beam-glyph.svg" alt="" /></span
+        ><span>beam</span></a
+      >
+      <nav aria-label="Main navigation">
+        <a href="/#playground">Explore Beam</a
+        ><a href="/#how-it-works">How it works</a><a href="/#faq">FAQ</a>
+      </nav>
+      <div class="header-actions">
+        <button
+          class="motion-toggle"
+          id="motion-toggle"
+          aria-pressed="false"
+          aria-label="Pause motion"
+        >
+          <svg class="icon" aria-hidden="true">
+            <use href="/assets/icons.svg#player-pause" /></svg
+          ><span>Pause motion</span></button
+        ><a class="button small" href="/download/"
+          >Set up Beam
+          <svg class="icon" aria-hidden="true">
+            <use href="/assets/icons.svg#arrow-down" /></svg
+        ></a>
+      </div>
+    </header>
+    <main id="main">
+      <article class="prose shell">
+        <h1>Privacy &amp; permissions</h1>
+        <h2>On this website</h2>
+        <p>The guided preview, payment, safety and agent examples run in your browser. They use sample text and addresses. Android setup progress is stored locally in this browser.</p>
+        <h2>In the Android app</h2>
+        <p>Email sign-in and the embedded wallet use Privy. When you use online assistance, the app sends your request and selected context to its configured server, which can use Anthropic and blockchain RPC services. You can inspect or exclude captured text. The native capture handoff expires after 120 seconds. Text already consumed can remain in the active Ask session.</p>
+        <h2>Android permissions</h2>
+        <ul>
+          <li><strong>Display over other apps</strong> draws the floating Beam.</li>
+          <li><strong>Accessibility</strong> reads visible text when you tap Beam. Copying text is an alternative.</li>
+          <li><strong>Notifications</strong> support the foreground overlay service.</li>
+          <li><strong>Battery optimization exemption</strong> helps the system keep that service running.</li>
+        </ul>
+        <h2>World ID and device confirmation</h2>
+        <p>For an approval-required action, the server verifies a World ID proof linked to the action and wallet. It stores an app-scoped session identifier. BeamPay records a salted hash for the wallet binding. The wallet still needs a separate device confirmation for payments.</p>
+        <h2>Voice and profile photos</h2>
+        <p>Android’s speech dialog handles voice input. Beam can read a payment review aloud. If you upload a profile photo, the configured server stores it and makes it readable by wallet address.</p>
+        <a class="button" href="/download/">Back to Android setup</a>
+      </article>
+    </main>
+    <footer>
+      <a href="/" class="brand"
+        ><span class="brand-mark" aria-hidden="true"
+          ><img src="/assets/beam-glyph.svg" alt="" /></span
+        ><span>beam</span></a
+      >
+      <p>Your screen. Your wallet. Your call.</p>
+      <div>
+        <a href="/download/">Android download</a
+        ><a href="/privacy.html">Privacy & permissions</a
+        ><a href="/#faq">Questions?</a>
+      </div>
+      <small>Beam · ETHGlobal Mumbai prototype · EVM testnet</small>
+    </footer>
+    <script type="module" src="/assets/interactions.js"></script>
+  </body>
+</html>

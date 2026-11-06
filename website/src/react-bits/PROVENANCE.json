@@ -1,0 +1,15 @@
+{
+  "repository": "https://github.com/DavidHDev/react-bits",
+  "commit": "4dc7b5b7772e1217c8fb8d2a7aa074302180e5b4",
+  "files": {
+    "TiltedCard.jsx": "src/content/Components/TiltedCard/TiltedCard.jsx",
+    "TiltedCard.css": "src/content/Components/TiltedCard/TiltedCard.css",
+    "CountUp.jsx": "src/content/TextAnimations/CountUp/CountUp.jsx",
+    "SpotlightCard.jsx": "src/content/Components/SpotlightCard/SpotlightCard.jsx",
+    "SpotlightCard.css": "src/content/Components/SpotlightCard/SpotlightCard.css"
+  },
+  "adaptations": {
+    "CountUp.jsx": "Count mode only, with a native animation frame, fixed decimal display and Beam motion control.",
+    "SpotlightCard.jsx": "Local pointer light without ambient animation, global listeners or extra effects."
+  }
+}

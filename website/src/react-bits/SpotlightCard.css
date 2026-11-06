@@ -1,0 +1,27 @@
+.spotlight-card {
+  position: relative;
+  isolation: isolate;
+}
+.spotlight-card__light {
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  border-radius: inherit;
+  pointer-events: none;
+  background: radial-gradient(
+    245px 200px at var(--spotlight-x, 50%) var(--spotlight-y, 50%),
+    #0080bc2e,
+    transparent
+  );
+  opacity: 0;
+  transition: opacity 180ms ease-out;
+}
+.spotlight-card[data-spotlight-motion="on"][data-spotlight="active"] > .spotlight-card__light {
+  opacity: 1;
+}
+html[data-motion="off"] .spotlight-card__light {
+  opacity: 0 !important;
+}
+@media (prefers-reduced-motion: reduce) {
+  .spotlight-card__light { display: none; }
+}

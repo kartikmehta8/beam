@@ -1,0 +1,111 @@
+.preview-player {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  background: #eef0f3;
+  color: #121314;
+  isolation: isolate;
+}
+.preview-stage {
+  height: calc(100% - 54px);
+  display: grid;
+  grid-template-columns: 1.04fr .96fr;
+  align-items: center;
+  gap: 8%;
+  padding: 4% 8%;
+  overflow: hidden;
+  background: radial-gradient(ellipse at 85% 95%, #d9e7ef, transparent 65%), #eef0f3;
+}
+.preview-stage[data-motion="on"] { animation: beam-frame-in 240ms cubic-bezier(.22,1,.36,1); }
+@keyframes beam-frame-in {
+  from { opacity: .65; transform: translateY(3px); }
+  to { opacity: 1; transform: none; }
+}
+.preview-copy { min-width: 0; }
+.preview-brand { display: flex; align-items: center; gap: 8px; margin-bottom: 14px; font-weight: 600; }
+.preview-brand .brand-mark { width: 30px; height: 30px; border-radius: 8px; }
+.preview-brand .brand-mark img { width: 18px; height: 18px; }
+.preview-copy h2 { font-size: clamp(24px, 4.1vw, 62px); line-height: 1.08; letter-spacing: -.035em; text-wrap: balance; }
+.preview-copy p { margin-top: 12px; max-width: 37ch; color: #444c55; font-size: clamp(12px, 1.6vw, 19px); }
+.preview-device {
+  width: min(100%, 264px);
+  height: min(100%, 350px);
+  min-height: 0;
+  justify-self: center;
+  display: flex;
+  flex-direction: column;
+  border: 6px solid #202327;
+  border-radius: 32px;
+  background: #fff;
+  box-shadow: 0 16px 38px #20232724;
+  padding: 12px;
+}
+.preview-device-top { display: flex; align-items: center; justify-content: space-between; font-size: 11px; font-weight: 600; }
+.preview-device-top i { width: 8px; height: 8px; border-radius: 50%; background: #121314; }
+.preview-device-top .icon { width: 17px; height: 17px; }
+.preview-device-body { display: flex; flex: 1; flex-direction: column; justify-content: center; align-items: start; gap: 10px; padding: 14px 8px; }
+.preview-device-body b { font-size: clamp(14px, 2.3vw, 26px); line-height: 1.1; }
+.preview-device-body span { font-size: clamp(10px, 1.3vw, 15px); color: #55595f; }
+.preview-device-button { display: flex; align-items: center; justify-content: center; gap: 8px; border-radius: 12px; background: #121314; color: #fff; padding: 10px 4px; font-size: 12px; }
+.preview-device-button .icon { width: 16px; height: 16px; }
+.preview-player .demo-launch-layer { z-index: 1; top: clamp(14px, 6%, 38px); bottom: auto; }
+.preview-player .demo-launch { box-shadow: 0 5px 24px #20232726; }
+.preview-controls { position: absolute; inset: auto 0 0; height: 54px; display: flex; align-items: center; gap: 10px; padding: 2px 10px; background: #17191d; color: #fff; }
+.preview-control { display: grid; place-items: center; flex: 0 0 44px; min-height: 44px; border: 0; border-radius: 8px; background: transparent; color: #fff; }
+.preview-control:not(:disabled):hover { background: #34373b; }
+.preview-play-label { display: none; }
+.preview-control:disabled { opacity: .45; cursor: default; }
+.preview-progress { flex: 1; display: flex; gap: 6px; }
+.preview-progress button {
+  display: flex;
+  align-items: center;
+  flex: 1 1 0;
+  min-width: 0;
+  min-height: 44px;
+  appearance: none;
+  border: 0;
+  padding: 0;
+  border-radius: 8px;
+  background: transparent;
+}
+.preview-progress button span { width: 100%; height: 3px; border-radius: 4px; background: #697079; }
+.preview-progress button:hover span { background: #bfc3c9; }
+.preview-progress button[aria-pressed="true"] span { background: #fff; }
+.preview-count { font-size: 12px; white-space: nowrap; font-variant-numeric: tabular-nums; }
+.journey-world-mark { display: grid; place-items: center; width: 74px; height: 74px; border-radius: 18px; background: #fff; border: 1px solid var(--border); }
+.journey-voice-scene .button { margin-block: 8px; }
+.approval-reason { line-height: 1.35; }
+.beam-partner-strip img { width: 17px; height: 17px; object-fit: contain; }
+
+@media (max-width: 690px) {
+  .preview-stage { gap: 5%; padding: 3% 6%; }
+  .preview-brand { margin-bottom: 5px; font-size: 12px; }
+  .preview-brand .brand-mark { width: 23px; height: 23px; border-radius: 6px; }
+  .preview-brand .brand-mark img { width: 15px; height: 15px; }
+  .preview-copy h2 { font-size: clamp(17px, 4.6vw, 32px); }
+  .preview-copy p { margin-top: 5px; font-size: 11px; line-height: 1.35; }
+  .preview-device { border-width: 4px; border-radius: 17px; width: min(100%, 154px); padding: 5px; }
+  .preview-device-top { font-size: 8px; }
+  .preview-device-top i { width: 4px; height: 4px; }
+  .preview-device-top .icon { width: 12px; height: 12px; }
+  .preview-device-body { gap: 4px; padding: 5px 3px; }
+  .preview-device-body img { width: 19px; height: 19px; }
+  .preview-device-body b { font-size: 13px; }
+  .preview-device-button { padding: 4px; font-size: 9px; border-radius: 7px; }
+  .preview-device-button .icon { width: 12px; height: 12px; }
+  .preview-controls { gap: 5px; padding-inline: 5px; }
+  .preview-player .demo-launch-layer { display: none; }
+  .preview-control:first-child { display: flex; gap: 5px; flex-basis: auto; padding-inline: 8px; }
+  .preview-play-label { display: inline; font-size: 11px; font-weight: 500; }
+}
+@media (max-width: 420px) {
+  .preview-stage { gap: 4%; padding: 8px 13px; }
+  .preview-copy p { font-size: 10px; }
+}
+@media (max-width: 350px) {
+  .demo-screen { min-height: 188px; }
+  .preview-device-body img { width: 14px; height: 14px; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .preview-stage { animation: none !important; }
+}

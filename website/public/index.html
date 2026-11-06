@@ -1,0 +1,343 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="theme-color" content="#FFFFFF" />
+    <title>Beam — Your screen. Your wallet. Your call.</title>
+    <meta
+      name="description"
+      content="Beam turns payment details on your Android screen into EVM payment simulations, with ENS recipients and World ID approvals."
+    />
+    <link rel="canonical" href="__SITE_URL__/" />
+    <meta
+      property="og:title"
+      content="Beam — Your screen. Your wallet. Your call."
+    />
+    <meta
+      property="og:description"
+      content="Beam turns payment details on your Android screen into EVM payment simulations, with ENS recipients and World ID approvals."
+    />
+
+    <meta name="twitter:card" content="summary" />
+    <link rel="icon" href="/assets/beam-mark.svg" type="image/svg+xml" />
+    <link
+      rel="preload"
+      href="/assets/inter-regular.woff2"
+      as="font"
+      type="font/woff2"
+      crossorigin
+    />
+    <link rel="stylesheet" href="/style.css" />
+    <link rel="stylesheet" href="/assets/interactions.css" />
+  </head>
+  <body>
+    <a class="skip-link" href="#main">Skip to content</a>
+    <header class="site-header">
+      <a href="/" class="brand" aria-label="Beam home"
+        ><span class="brand-mark" aria-hidden="true"
+          ><img src="/assets/beam-glyph.svg" alt="" /></span
+        ><span>beam</span></a
+      >
+      <nav aria-label="Main navigation">
+        <a href="/#playground">Explore Beam</a
+        ><a href="/#how-it-works">How it works</a><a href="/#faq">FAQ</a>
+      </nav>
+      <div class="header-actions">
+        <button
+          class="motion-toggle"
+          id="motion-toggle"
+          aria-pressed="false"
+          aria-label="Pause motion"
+        >
+          <svg class="icon" aria-hidden="true">
+            <use href="/assets/icons.svg#player-pause" /></svg
+          ><span>Pause motion</span></button
+        ><a class="button small" href="/download/"
+          >Set up Beam
+          <svg class="icon" aria-hidden="true">
+            <use href="/assets/icons.svg#arrow-down" /></svg
+        ></a>
+      </div>
+    </header>
+    <main id="main">
+      <section class="hero shell">
+        <div class="hero-heading">
+          <h1>Your screen.<br />Your wallet.<br /><span>Your call.</span></h1>
+          <div class="hero-intro">
+            <p>
+              Pay from the screen you’re on. <br />Explore EVM payments. <br />Review the request yourself.
+            </p>
+            <div class="actions">
+              <a class="button" href="/download/"
+                >Set up Beam for Android
+                <svg class="icon" aria-hidden="true">
+                  <use href="/assets/icons.svg#arrow-down" /></svg></a
+              ><a class="text-link" href="#product-demo" data-play-demo
+                >Play guided demo
+                <svg class="icon" aria-hidden="true">
+                  <use href="/assets/icons.svg#player-play" /></svg
+              ></a>
+            </div>
+            <p class="fine">Android prototype · EVM testnet · ETHGlobal Mumbai</p>
+          </div>
+        </div>
+        <figure class="product-demo" id="product-demo">
+          <div class="demo-screen" id="preview-mount">
+            <p class="fallback">Beam reads the sample payment request, resolves the recipient, and shows a review before confirmation.</p>
+          </div>
+          <figcaption id="demo-caption">
+            <span>Beam in four steps. Product simulation · no funds sent.</span>
+            <a class="text-link" href="#playground">
+              Try it yourself
+              <svg class="icon" aria-hidden="true">
+                <use href="/assets/icons.svg#arrow-down" />
+              </svg>
+            </a>
+          </figcaption>
+          <details class="demo-transcript">
+            <summary>
+              Read the demo transcript
+              <svg class="icon" aria-hidden="true"><use href="/assets/icons.svg#arrow-down" /></svg>
+            </summary>
+            <div>
+              <p>Open a conversation with an amount and recipient, then tap the floating Beam. It reads the visible text exposed by Android. You can paste details if the app hides its text.</p>
+              <p>Review the amount and ENS recipient. The device resolves the name again and checks the payment. A request above the cap, to certain new recipients or from an external agent can require World ID.</p>
+              <p>Confirm separately on your phone. BeamPay routes the payment on the configured testnet. The preview above uses sample messages and receipts.</p>
+            </div>
+          </details>
+        </figure>
+      </section>
+      <section class="playground-section shell" id="playground">
+        <div class="section-heading">
+          <h2>Now, take it<br />for a spin.</h2>
+          <p>
+            Choose an example EVM network and amount, then try a sample payment in WhatsApp, email or Telegram.
+          </p>
+        </div>
+        <div>
+          <div id="playground-mount">
+            <p class="fallback">
+              An Android wallet that meets you in the conversation. Enable
+              JavaScript to try the local payment simulation.
+            </p>
+          </div>
+        </div>
+        <div class="capability-strip beam-partner-strip" aria-label="Beam technologies">
+          <span><svg class="icon" aria-hidden="true"><use href="/assets/icons.svg#network" /></svg> EVM payment flow</span>
+          <span><img src="/assets/ens.svg" alt="" width="17" height="17" /> ENS recipients</span>
+          <span><img src="/assets/world.svg" alt="" width="17" height="17" /> World ID approvals</span>
+          <span><svg class="icon" aria-hidden="true"><use href="/assets/icons.svg#brand-android" /></svg> Made for Android</span>
+        </div>
+      </section>
+      <section class="feature-section shell" id="features">
+        <div class="section-heading">
+          <h2>A floating Beam.<br />A lot within reach.</h2>
+          <p>
+            A payment tool, a second look at a message,<br />and an extra check when you need one.
+          </p>
+        </div>
+        <div id="journey-mount">
+          <p class="fallback">
+            Explore payments, Scam Shield, ENS names and World ID. Enable JavaScript to try the examples.
+          </p>
+        </div>
+      </section>
+      <section class="shield-section" id="scam-shield">
+        <div class="shell">
+          <div class="section-heading">
+            <h2>A second look.<br />Before you send.</h2>
+            <p>
+              Scam Shield surfaces the signals hiding in a message. Try these
+              sample screens and see what changes.
+            </p>
+          </div>
+          <div id="shield-mount"></div>
+          <p class="fine">
+            Illustrative verdicts based on Beam’s checks. A risk label cannot
+            guarantee safety.
+          </p>
+        </div>
+      </section>
+      <section class="agents-section shell" id="agents">
+        <div class="section-heading">
+          <h2>Your agents can ask.<br />Only you can approve.</h2>
+          <p>
+            Connect Claude Desktop, Codex or another MCP client. Open the
+            review link on your phone and approve with World ID.
+          </p>
+        </div>
+        <div id="agents-mount"></div>
+      </section>
+      <section class="how-section shell" id="how-it-works">
+        <span id="how" aria-hidden="true"></span>
+        <div class="section-heading">
+          <h2>From “send this”<br />to “all set.”</h2>
+          <a class="text-link" href="/download/#setup"
+            >Get set up
+            <svg class="icon" aria-hidden="true">
+              <use href="/assets/icons.svg#arrow-up-right" /></svg
+          ></a>
+        </div>
+        <div id="how-mount"></div>
+      </section>
+      <section class="control-section shell">
+        <div class="control-title">
+          <span class="big-glyph"
+            ><span class="brand-mark" aria-hidden="true"
+              ><img src="/assets/beam-glyph.svg" alt="" /></span
+          ></span>
+          <h2>Small on your screen.<br />Clear about control.</h2>
+        </div>
+        <div class="control-list">
+          <article>
+            <svg class="icon" aria-hidden="true">
+              <use href="/assets/icons.svg#hand-stop" />
+            </svg>
+            <div>
+              <h3>A tap starts it.</h3>
+              <p>
+                Screen context is captured on demand. Inspect or exclude what
+                Beam sees.
+              </p>
+            </div>
+          </article>
+          <article>
+            <svg class="icon" aria-hidden="true">
+              <use href="/assets/icons.svg#device-mobile" />
+            </svg>
+            <div>
+              <h3>Your phone signs.</h3>
+              <p>
+                The server proposes. The app rebuilds and re-checks the payment
+                before you approve.
+              </p>
+            </div>
+          </article>
+          <article>
+            <svg class="icon" aria-hidden="true">
+              <use href="/assets/icons.svg#arrows-exchange" />
+            </svg>
+            <div>
+              <h3>The network is explicit.</h3>
+              <p>
+                The review shows the selected network. The Android app uses its configured payment network.
+              </p>
+            </div>
+          </article>
+        </div>
+      </section>
+      <section class="faq-section shell" id="faq">
+        <div class="section-heading">
+          <h2>Good questions.<br />Clear answers.</h2>
+          <div class="faq-tools">
+            <label for="faq-search">Search the FAQ</label>
+            <div class="search-field">
+              <svg class="icon" aria-hidden="true">
+                <use href="/assets/icons.svg#search" /></svg
+              ><input
+                type="search"
+                id="faq-search"
+                placeholder="Try “permissions” or “agents”"
+              />
+            </div>
+          </div>
+        </div>
+        <div class="faq-toolbar">
+          <div id="faq-topics" class="chips" aria-label="FAQ topics">
+            <button aria-pressed="true" data-topic="All">All</button
+            ><button aria-pressed="false" data-topic="Using Beam">
+              Using Beam</button
+            ><button aria-pressed="false" data-topic="Payments">Payments</button
+            ><button aria-pressed="false" data-topic="Safety">Safety</button
+            ><button aria-pressed="false" data-topic="Agents">Agents</button
+            ><button aria-pressed="false" data-topic="Setup">
+              Setup
+            </button>
+          </div>
+          <button id="faq-expand" class="text-button">Expand all</button>
+        </div>
+        <p class="fine" id="faq-count" role="status">10 answers</p>
+        <div class="faq-list">
+          <details data-topic="Using Beam">
+            <summary>What is Beam?<span aria-hidden="true">+</span></summary>
+            <div class="faq-answer"><p>Beam is an Android wallet with a floating button over other apps. Tap it to read visible text, check a suspicious message or prepare a test payment. You review and confirm before anything is sent.</p></div>
+          </details>
+          <details data-topic="Using Beam">
+            <summary>Does it work in WhatsApp, email and Telegram?<span aria-hidden="true">+</span></summary>
+            <div class="faq-answer"><p>These are sample screens. Beam can read text that Android accessibility exposes when you tap it. You can paste the payment details if a screen does not expose its text.</p></div>
+          </details>
+          <details data-topic="Payments">
+            <summary>What network does Beam pay on?<span aria-hidden="true">+</span></summary>
+            <div class="faq-answer"><p>The browser demo lets you compare EVM testnets. The Android app uses the single payment network supported by its source build.</p></div>
+          </details>
+          <details data-topic="Payments">
+            <summary>Can I pay someone by ENS name?<span aria-hidden="true">+</span></summary>
+            <div class="faq-answer"><p>Yes. Beam resolves the name and rechecks it on your phone. With World ID linked and registration configured, you can also claim a Beam ENS subname.</p></div>
+          </details>
+          <details data-topic="Payments">
+            <summary>When do I need World ID?<span aria-hidden="true">+</span></summary>
+            <div class="faq-answer"><p>Beam asks for World ID when a payment is above your cap, comes from an external agent, meets the threshold for a first-time recipient, or a previously paid ENS name points to a different address. You still confirm on your phone.</p></div>
+          </details>
+          <details data-topic="Safety">
+            <summary>Can Scam Shield guarantee a payment is safe?<span aria-hidden="true">+</span></summary>
+            <div class="faq-answer"><p>Scam Shield explains signals such as urgency, requests for secrets and pay-to-receive traps. Check the recipient and amount yourself.</p></div>
+          </details>
+          <details data-topic="Agents">
+            <summary>Can an external agent spend on its own?<span aria-hidden="true">+</span></summary>
+            <div class="faq-answer"><p>An MCP agent can prepare a payment and return a phone review link. The request always needs World ID and separate device confirmation.</p></div>
+          </details>
+          <details data-topic="Using Beam">
+            <summary>Can I use voice?<span aria-hidden="true">+</span></summary>
+            <div class="faq-answer"><p>Beam uses the Android speech dialog for input and can read review details aloud. Voice input can prepare a request. Approve it separately on your phone.</p></div>
+          </details>
+          <details data-topic="Setup">
+            <summary>How can I install the Android app?<span aria-hidden="true">+</span></summary>
+            <div class="faq-answer"><p>Beam’s repository provides the Android source and build instructions. <a class="text-link" href="/download/">Open Android setup</a> for the prerequisites and checklist.</p></div>
+          </details>
+          <details data-topic="Setup">
+            <summary>Do the website demos move funds?<span aria-hidden="true">+</span></summary>
+            <div class="faq-answer"><p>The site runs local examples with sample recipients and receipts. No wallet or funds are needed.</p></div>
+          </details>
+        </div>
+        <div id="faq-empty" hidden>
+          <p>No answers found.</p>
+          <button id="faq-reset" class="button secondary">Clear filters</button>
+        </div>
+      </section>
+      <section class="download-close">
+        <div class="shell">
+          <h2>Meet your new<br />screen companion.</h2>
+          <div>
+            <a href="/download/" class="button light"
+              >Set up Beam for Android
+              <svg class="icon" aria-hidden="true">
+                <use href="/assets/icons.svg#arrow-down" /></svg
+            ></a>
+            <p>Android source · EVM testnet setup</p>
+            <a href="/download/#release-notes" class="text-link"
+              >What’s in the prototype
+              <svg class="icon" aria-hidden="true">
+                <use href="/assets/icons.svg#arrow-up-right" /></svg
+            ></a>
+          </div>
+        </div>
+      </section>
+    </main>
+    <footer>
+      <a href="/" class="brand"
+        ><span class="brand-mark" aria-hidden="true"
+          ><img src="/assets/beam-glyph.svg" alt="" /></span
+        ><span>beam</span></a
+      >
+      <p>Your screen. Your wallet. Your call.</p>
+      <div>
+        <a href="/download/">Android download</a
+        ><a href="/privacy.html">Privacy & permissions</a
+        ><a href="/#faq">Questions?</a>
+      </div>
+      <small>Beam · ETHGlobal Mumbai prototype · EVM testnet</small>
+    </footer>
+    <script type="module" src="/assets/interactions.js"></script>
+  </body>
+</html>
